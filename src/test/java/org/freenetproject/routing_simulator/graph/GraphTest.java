@@ -23,8 +23,8 @@ public class GraphTest {
 
 	private final File temporary;
 
-	public GraphTest() {
-		temporary = new File("temp");
+	public GraphTest() throws IOException {
+		temporary = File.createTempFile("test", "graph");
 	}
 
 	/**

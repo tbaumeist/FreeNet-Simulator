@@ -25,7 +25,7 @@ import java.util.Queue;
 public class RoutingSim {
 	// generic output format
 	private static final DecimalFormat outputFormat = new DecimalFormat(
-			"0.000000");
+			"0.000000"); 
 
 	/**
 	 * Main simulator program. Generate a set of graphs of different parameters,

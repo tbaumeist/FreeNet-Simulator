@@ -163,6 +163,7 @@ public class SimpleNode {
 
 		peer.disconnect(least);
 
+		assert peer != this;
 		// Peers added via path folding are added to the end.
 		connect(peer);
 		lruQueue.remove(peer);
@@ -196,6 +197,9 @@ public class SimpleNode {
 		// Promote successful peers in the LRU queue.
 		while (iterator.hasPrevious()) {
 			SimpleNode to = iterator.previous();
+			// Check if you are looking at the same node
+			if(to == foldingFrom)
+				continue; 
 			assert to.isConnected(foldingFrom);
 			to.lruQueue.push(foldingFrom);
 			foldingFrom = to;

@@ -8,6 +8,8 @@ import org.freenetproject.routing_simulator.graph.linklength.LinkLengthSource;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.freenetproject.routing_simulator.util.ArrayStats;
 
+import frp.utils.Progresser;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -319,6 +321,10 @@ public class RoutingSim {
 
 		int successes = 0, disconnectedFolding = 0, disconnectedBootstrap = 0, totalPathLength = 0;
 
+		// Print out current run progress for users benefit
+		System.out.println("\tRouting Simulation");
+		Progresser prog = new Progresser(System.out, nRequests);
+		
 		/*
 		 * Path length distribution is stored in an array. The index
 		 * is the path length and the value is the number of times
@@ -326,6 +332,9 @@ public class RoutingSim {
 		 */
 		int[] pathLengthDist = new int[maxHTL+1];
 		for (int i = 0; i < nRequests; i++) {
+			
+			prog.hit();
+			
 			final SimpleNode origin = g.getNode(rand.nextInt(g.size()));
 			/*
 			 * It causes distortion to select among node locations for

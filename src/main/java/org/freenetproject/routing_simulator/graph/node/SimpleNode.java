@@ -511,7 +511,7 @@ public class SimpleNode {
 			// If the routing did not succeed and did not use all remaining hops, backtrack if enabled.
 			final int additionalHops = result.pathLength - pathLength;
 			if (backtracking && !result.success && additionalHops < hopsToLive) {
-				System.out.println("BACKTRACKING");
+				//System.out.println("BACKTRACKING");
 				return this.greedyRoute(target, hopsToLive - additionalHops, nLookAhead, backtracking, peerSelector, foldingPolicy, chain);
 			} else {
 				return result;

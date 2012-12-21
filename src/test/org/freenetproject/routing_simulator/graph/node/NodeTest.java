@@ -1,10 +1,12 @@
-package org.freenetproject.routing_simulator.graph.node;
+package test.org.freenetproject.routing_simulator.graph.node;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.freenetproject.routing_simulator.graph.Graph;
-import org.freenetproject.routing_simulator.graph.GraphTest;
+import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.testng.annotations.Test;
+
+import test.org.freenetproject.routing_simulator.graph.GraphTest;
 
 /**
  * Tests node equality,
@@ -48,19 +50,19 @@ public class NodeTest {
 		B.connect(C);
 
 		// In A's LRU queue promote C; not B.
-		A.lruQueue.push(C);
+		A.getLRUQueue().push(C);
 
 		/*
 		 * The LRU queue should not be modified by disconnectCandidate().
 		 */
-		SimpleNode before[] = new SimpleNode[A.lruQueue.size()];
-		A.lruQueue.toArrayOrdered(before);
+		SimpleNode before[] = new SimpleNode[A.getLRUQueue().size()];
+		A.getLRUQueue().toArrayOrdered(before);
 
 		// B was not promoted, and so should be the least recently used.
 		assert A.disconnectCandidate().equals(B);
 
-		SimpleNode after[] = new SimpleNode[A.lruQueue.size()];
-		A.lruQueue.toArrayOrdered(after);
+		SimpleNode after[] = new SimpleNode[A.getLRUQueue().size()];
+		A.getLRUQueue().toArrayOrdered(after);
 
 		assert before.length == after.length;
 		for (int i = 0; i < before.length; i++) assert before[i].equals(after[i]);

@@ -1,7 +1,8 @@
-package org.freenetproject.routing_simulator.graph;
+package test.org.freenetproject.routing_simulator.graph;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
+import org.freenetproject.routing_simulator.graph.Graph;
 import org.freenetproject.routing_simulator.graph.degree.FixedDegreeSource;
 import org.freenetproject.routing_simulator.graph.linklength.KleinbergLinkSource;
 import org.freenetproject.routing_simulator.graph.linklength.LinkLengthSource;

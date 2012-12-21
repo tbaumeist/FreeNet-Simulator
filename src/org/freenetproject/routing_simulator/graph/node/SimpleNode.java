@@ -33,6 +33,11 @@ public class SimpleNode {
 	public final int index;
 
 	final LRUQueue<SimpleNode> lruQueue;
+	
+	public LRUQueue<SimpleNode> getLRUQueue()
+	{
+		return this.lruQueue;
+	}
 
 	public void write(DataOutputStream out) throws IOException {
 		out.writeDouble(location);
@@ -138,7 +143,7 @@ public class SimpleNode {
 	/**
 	 * @return a peer which can be disconnected when path folding.
 	 */
-	SimpleNode disconnectCandidate() {
+	public SimpleNode disconnectCandidate() {
 		final SimpleNode least = lruQueue.pop();
 		lruQueue.pushLeast(least);
 		return least;

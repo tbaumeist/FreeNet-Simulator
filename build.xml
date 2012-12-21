@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<!-- Configuration of the Ant build system to generate a Jar file -->
+<project name="FreeNet-Route-Prediction" default="CreateJars">
+	<property name="main.src" value="src" />
+	<property name="main.dist" value="dist" />
+	<property name="main.build" value="bin" />
+	<property name="main.jar" value="freenet-simulator.jar" />
+	<property name="main.global" value="../../bin" />
+	<property name="main.lib" value="lib" />
+	<path id="external.jars">
+		<fileset dir="${main.lib}" includes="**/*.jar" />
+	</path>
+
+	<target name="CreateJars" description="Create Jar files" depends="clean, local-jars, global-jars" />
+
+	<target name="clean">
+		<delete dir="${main.build}" />
+		<mkdir dir="${main.build}" />
+
+		<delete dir="${main.dist}" />
+		<mkdir dir="${main.dist}" />
+	</target>
+
+	<!-- Create the jar files within the project -->
+	<target name="local-jars">
+		<javac debug="true" srcdir="${main.src}" destdir="${main.build}" classpathref="external.jars" includeantruntime="false" />
+		<copy todir="${main.build}">
+			<fileset dir="${main.src}" excludes="**/*.java" />
+		</copy>
+		<jar basedir="${main.build}" jarfile="${main.build}/${main.jar}" includes="org/" />
+		<zip destfile="${main.dist}/${main.jar}">
+			<zipgroupfileset dir="${main.lib}" includes="**/*.jar" excludes="junit.jar" />
+			<zipgroupfileset dir="${main.build}" includes="**/*.jar" />
+		</zip>
+	</target>
+
+	<!-- Check if this project is used as a sub project -->
+	<!-- If so copy jar to main project -->
+	<target name="-check-global-avail" unless="file.exists">
+		<available property="file.exists" file="${main.global}" />
+	</target>
+
+	<target name="global-jars" depends="-check-global-avail" if="${file.exists}">
+		<copy todir="${main.global}">
+			<fileset dir="${main.dist}" includes="**/*.jar" />
+		</copy>
+	</target>
+</project>

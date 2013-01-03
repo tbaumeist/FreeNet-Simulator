@@ -7,7 +7,8 @@ import org.freenetproject.routing_simulator.graph.degree.FixedDegreeSource;
 import org.freenetproject.routing_simulator.graph.linklength.KleinbergLinkSource;
 import org.freenetproject.routing_simulator.graph.linklength.LinkLengthSource;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
-import org.testng.annotations.Test;
+import org.junit.Test;
+
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -20,11 +21,11 @@ import java.util.ArrayList;
 /**
  * Test graph generation, saving, and loading.
  */
-public class GraphTest {
+public class Test_Graph {
 
 	private final File temporary;
 
-	public GraphTest() throws IOException {
+	public Test_Graph() throws IOException {
 		temporary = File.createTempFile("test", "graph");
 	}
 

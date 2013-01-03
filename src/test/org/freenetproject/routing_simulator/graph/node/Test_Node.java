@@ -4,18 +4,18 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.freenetproject.routing_simulator.graph.Graph;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
-import test.org.freenetproject.routing_simulator.graph.GraphTest;
+import test.org.freenetproject.routing_simulator.graph.Test_Graph;
 
 /**
  * Tests node equality,
  */
-public class NodeTest {
+public class Test_Node {
 
 	@Test
 	public void testEquality() {
-		final Graph graph = GraphTest.generateKleinberg();
+		final Graph graph = Test_Graph.generateKleinberg();
 		final SimpleNode node = graph.getNode(0);
 		final SimpleNode second = graph.getNode(1);
 

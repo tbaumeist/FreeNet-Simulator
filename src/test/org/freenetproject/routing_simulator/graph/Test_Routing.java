@@ -1,7 +1,6 @@
 package test.org.freenetproject.routing_simulator.graph;
 
 import java.io.File;
-import java.nio.file.Paths;
 
 import junit.framework.Assert;
 
@@ -19,10 +18,10 @@ public class Test_Routing {
 		String[] args = new String[]
 				{"--ideal-link", 
 				"--fixed-degree", "5", 
-				"--size", "100", 
+				"--size", "4000", 
 				"--include-lattice",
 				"--route", "144000", 
-				"--route-hops", "10",
+				"--route-hops", "18",
 				"--look-ahead", "1", 
 				"--route-policy", "BACKTRACKING",
 				"--fold-policy", "FREENET", 

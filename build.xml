@@ -27,7 +27,11 @@
 		<copy todir="${main.build}">
 			<fileset dir="${main.src}" excludes="**/*.java" />
 		</copy>
-		<jar basedir="${main.build}" jarfile="${main.build}/${main.jar}" includes="org/" />
+		<jar basedir="${main.build}" jarfile="${main.build}/${main.jar}" includes="org/" >
+			<manifest>
+				<attribute name="Main-Class" value="org.freenetproject.routing_simulator.RoutingSim" />
+			</manifest>
+		</jar>
 		<zip destfile="${main.dist}/${main.jar}">
 			<zipgroupfileset dir="${main.lib}" includes="**/*.jar" excludes="junit.jar" />
 			<zipgroupfileset dir="${main.build}" includes="**/*.jar" />

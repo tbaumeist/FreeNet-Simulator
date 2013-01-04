@@ -7,6 +7,7 @@ import org.freenetproject.routing_simulator.graph.Graph;
 import org.freenetproject.routing_simulator.graph.linklength.LinkLengthSource;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.freenetproject.routing_simulator.util.ArrayStats;
+import org.freenetproject.routing_simulator.util.logging.SimLogger;
 
 import frp.utils.Progresser;
 
@@ -20,14 +21,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.logging.Logger;
 
 /**
  * Class to perform routing simulations on Graphs.
  */
 public class RoutingSim {
+	private final static Logger LOGGER = Logger.getLogger(RoutingSim.class.getName());
 	// generic output format
 	private static final DecimalFormat outputFormat = new DecimalFormat(
-			"0.000000"); 
+			"0.######"); 
 
 	/**
 	 * Main simulator program. Generate a set of graphs of different parameters,
@@ -35,41 +38,24 @@ public class RoutingSim {
 	 * 
 	 * @param args
 	 *            Command-line arguments; not used.
+	 * @throws Exception 
 	 */
-	public static void main(String[] args) throws ParseException {
+	public static void main(String[] args) throws Exception {
+		SimLogger.setup();
+		
 		Arguments arguments = Arguments.parse(args);
 		if (arguments == null)
 			System.exit(1);
 
-		// TODO: What is a sink policy? Looks like 2 is used as a hard-coded
-		// second dimension in Request, so this isn't currently a good
-		// configuration target.
-		//int[] sinkPolsUsed = { 0, 1 };
-		//PrintStream[] histogramOutput = new PrintStream[sinkPolsUsed.length];
-		//for (int aSinkPolsUsed : sinkPolsUsed) {
-			// histogramOutput[i] = new 
-			// PrintStream(writableFile(cmd.getOptionValue("output-hops")+ "-" +
-			// sinkPolsUsed[i]));
-		//}
-
-		// TODO: What is this used for?
-		// TODO: Hard-coded dimensions bad - clean this up.
-		double[][][] avgStats = new double[1][13][1];
-
-		if (!arguments.verbose) {
-			System.out.println();
-			System.out
-					.print("p\tq\tpLow\tpInst\tevenSpacing\tfastGeneration\t");
-			Graph.printGraphStatsHeader();
-			System.out.println();
-		}
-
-		RandomGenerator rand = new MersenneTwister(arguments.seed);
+		SimLogger.setup(arguments.logLevel);
+		LOGGER.fine(arguments.toString());
 
 		// Time tracking: report time taken for each graph setting if verbose;
 		// upon completion otherwise.
 		long startTime = System.currentTimeMillis();
 		long lastTime = startTime;
+		
+		RandomGenerator rand = new MersenneTwister(arguments.seed);
 
 		// Load the graph; otherwise generate.
 		Graph g;
@@ -104,22 +90,9 @@ public class RoutingSim {
 			}
 		}
 
-		if (!arguments.verbose) {
-			g.printGraphStats(arguments.verbose);
-			System.out.println();
-		}
-		if (!arguments.quiet) {
-			System.out.println("Generation took (ms): "
-					+ (System.currentTimeMillis() - lastTime));
-			lastTime = System.currentTimeMillis();
-		}
-
-		double[] indivStats = g.graphStats();
-		// TODO: 13 is defined because this doubles array has 13 different types
-		// of information. This should be a class.
-		for (int i = 0; i < 11; i++) {
-			avgStats[0][i][0] = indivStats[i];
-		}
+		LOGGER.fine("Before completion graph stats\n" + g.printGraphStats());
+		LOGGER.fine("Graph generation took (ms): " + (System.currentTimeMillis() - lastTime));
+		lastTime = System.currentTimeMillis();
 
 		if (arguments.runProbe) {
 			// Re-initialize random number source so behavior here does not
@@ -127,8 +100,7 @@ public class RoutingSim {
 			rand = new MersenneTwister(arguments.seed);
 			// Uniform probes if --metropolis-hastings is not specified.
 			// TODO: Pass in checked directory.
-			probeDistribution(g, rand, arguments.maxHopsProbe, arguments.quiet,
-					arguments.verbose, arguments.outputProbe,
+			probeDistribution(g, rand, arguments.maxHopsProbe, arguments.outputProbe,
 					!arguments.metropolisHastings);
 		}
 
@@ -184,27 +156,10 @@ public class RoutingSim {
 		if (arguments.graphOutputText != null)
 			g.writeText(arguments.graphOutputText);
 
-		if (arguments.verbose)
-			System.out.println();
-		if (!arguments.quiet) {
-			System.out.println("Time taken (ms): "
-					+ (System.currentTimeMillis() - lastTime));
-		}
-
-		if (!arguments.quiet) {
-			System.out.println("Average stats:");
-			Graph.printGraphStatsHeader();
-			// TODO: Why is this hardcoded to 13?
-			for (int j = 0; j < 13; j++) {
-				// TODO: Hard-coded dimensions bad. 
-				ArrayStats s = new ArrayStats(avgStats[0][j]);
-				System.out.print("(" + outputFormat.format(s.mean()) + " "
-						+ outputFormat.format(s.stdDev()) + ")\t");
-			}
-			System.out.println();
-			System.out.println("Total time taken (ms): "
-					+ (System.currentTimeMillis() - startTime));
-		}
+		LOGGER.fine("Route/Probe time taken (ms): " + (System.currentTimeMillis() - lastTime));
+		LOGGER.fine("Total time taken (ms): " + (System.currentTimeMillis() - startTime));
+		
+		LOGGER.info("After completion graph stats\n" + g.printGraphStats());
 	}
 
 	/**
@@ -236,7 +191,7 @@ public class RoutingSim {
 	}
 
 	private static void probeDistribution(Graph g, RandomGenerator rand,
-			int maxHops, boolean quiet, boolean verbose,
+			int maxHops,
 			final String containingPath, boolean uniform) {
 		File output = new File(containingPath);
 		assert output.isDirectory();
@@ -332,6 +287,9 @@ public class RoutingSim {
 		 */
 		int[] pathLengthDist = new int[maxHTL+1];
 		for (int i = 0; i < nRequests; i++) {
+			
+			//if(i % 10000 == 0)
+			//	System.out.println("\nConnections: " + g.nEdges());
 			
 			prog.hit();
 			

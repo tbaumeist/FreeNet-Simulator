@@ -356,35 +356,27 @@ public class Graph {
 	/**
 	 * Print some topology statistics.
 	 */
-	public void printGraphStats(boolean verbose) {
-		if (verbose) {
-			int nEdges = nEdges();
-			double meanDegree = ((double)(2 * nEdges)) / nodes.size();
-			System.out.println(	"Graph stats:");
-			System.out.println(	"Size:					" + size());
-			System.out.println(	"Edges:					" + nEdges);
-			System.out.println(	"Min degree:				" + minDegree());
-			System.out.println(	"Max degree:				" + maxDegree());
-			System.out.println(	"Mean degree:				" + meanDegree);
-			System.out.println(	"Degree stddev:				" + Math.sqrt(degreeVariance()));
-			System.out.println(	"Mean local clustering coefficient:	" + meanLocalClusterCoeff());
-			System.out.println(	"Global clustering coefficient:		" + globalClusterCoeff());
-			System.out.println();
-		} else {
-			double[] cc = localClusterCoeff();
-			int[] deg = degrees();
-			ArrayStats ccStats = new ArrayStats(cc);
-			ArrayStats degStats = new ArrayStats(deg);
-			System.out.print(size() + "\t" + nEdges() + "\t" + minDegree() + "\t" + maxDegree() + "\t" + globalClusterCoeff() + "\t");
-			System.out.print(ccStats.mean() + "\t" + ccStats.stdDev() + "\t" + ccStats.skewness() + "\t");
-			System.out.print(degStats.mean() + "\t" + degStats.stdDev() + "\t" + degStats.skewness() + "\t");
-		}
+	public String printGraphStats() {
+		int nEdges = nEdges();
+		double meanDegree = ((double) (2 * nEdges)) / nodes.size();
+		StringBuilder b = new StringBuilder();
+		b.append("Graph stats:");
+		b.append("\nSize:					" + size());
+		b.append("\nEdges:					" + nEdges);
+		b.append("\nMin degree:				" + minDegree());
+		b.append("\nMax degree:				" + maxDegree());
+		b.append("\nMean degree:				" + meanDegree);
+		b.append("\nDegree stddev:				" + Math.sqrt(degreeVariance()));
+		b.append("\nMean local clustering coefficient:	"
+				+ meanLocalClusterCoeff());
+		b.append("\nGlobal clustering coefficient:		" + globalClusterCoeff());
+		return b.toString();
 	}
 
 	/**Print column headers for printGraphStats(false).*/
 	public static void printGraphStatsHeader() {
 		System.out.print("nNodes\tnEdges\tminDegree\tmaxDegree\tglobalClusterCoeff\tlocalCCMean\tlocalCCStdDev\tlocalCCSkew\t");
-		System.out.print("degreeMean\tdegreeStdDev\tdegreeSkew\t");
+		System.out.print("degreeMean\tdegreeStdDev\tdegreeSkew\t\n");
 	}
 
 	/**Get the topology stats as an array.*/
@@ -592,7 +584,7 @@ public class Graph {
 			RandomGenerator rand = new MersenneTwister(trial);
 			final ArrayList<SimpleNode> nodes = Graph.generateNodes(nNodes, rand, true, new PoissonDegreeSource(12));
 			Graph g = connectGraph(nodes, rand, new KleinbergLinkSource(rand, nodes));
-			g.printGraphStats(true);
+			System.out.println(g.printGraphStats());
 			int[] uniformWalkDist;
 			int[] weightedWalkDist;
 			int[] refDist = new int[nNodes];

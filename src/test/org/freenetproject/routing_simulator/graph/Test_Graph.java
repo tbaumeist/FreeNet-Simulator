@@ -43,7 +43,7 @@ public class Test_Graph {
 	public static Graph generateKleinberg() {
 		final RandomGenerator random = getRandom();
 		final ArrayList<SimpleNode> nodes = Graph.generateNodes(100, random, false, new FixedDegreeSource(5));
-		return Graph.connectGraph(nodes, random, new KleinbergLinkSource(random, nodes));
+		return Graph.connectGraph(nodes, random, new KleinbergLinkSource(random, nodes), false);
 	}
 
 	/**
@@ -59,7 +59,7 @@ public class Test_Graph {
 		final LinkLengthSource linkLengthSource = new KleinbergLinkSource(random, nodes);
 
 		if (directed) return Graph.connectSandberg(nodes, 0, linkLengthSource);
-		else return Graph.connectGraphLattice(nodes, random, linkLengthSource);
+		else return Graph.connectGraph(nodes, random, linkLengthSource, true);
 	}
 
 	/**

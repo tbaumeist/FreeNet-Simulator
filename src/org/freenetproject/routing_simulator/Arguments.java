@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import static org.freenetproject.routing_simulator.util.File.readableFile;
@@ -42,7 +43,7 @@ public class Arguments {
 	 * Public attributes of the arguments class
 	 */
 	public final boolean lattice, fastGeneration, runProbe, metropolisHastings, runRoute, includeLattice, bootstrap;
-	public final int seed, networkSize, shortcuts, maxHopsProbe, maxHopsRoute, nRequests, nLookAhead;
+	public final int seed, networkSize, shortcuts, maxHopsProbe, maxHopsRoute, nRouteRequests, nLookAhead;
 	public final GraphGenerator graphGenerator;
 	public final DataInputStream degreeInput, linkInput, graphInput;
 	public final DataOutputStream degreeOutput, linkOutput, graphOutput;
@@ -52,7 +53,8 @@ public class Arguments {
 	public final RoutingPolicy routingPolicy;
 
 	private final CommandLine cmd;
-	private static final RoutingPolicy ROUTING_DEFAULT = RoutingPolicy.GREEDY;
+	private static final RoutingPolicy ROUTING_DEFAULT = RoutingPolicy.BACKTRACKING;
+	private static final FoldingPolicy FOLDING_DEFAULT = FoldingPolicy.FREENET;
 	private static final SimLogger.LogLevel LOGGING_DEFAULT = SimLogger.LogLevel.REGULAR;
 	private final static Logger LOGGER = Logger.getLogger(RoutingSim.class.getName());
 	/*
@@ -60,38 +62,43 @@ public class Arguments {
 	 */
 	private final static Option opt_help = new Option("h", "help", false, "Display this message.");
 	private final static Option opt_version = new Option("v", "version", false, "Display software version.");
-	private final static Option opt_logLevel = new Option("loglevel", "log-level", true, "Level of logging: ");
+	private final static Option opt_logLevel = new Option("l", "log-level", true, "Level of logging: ");
+	private final static Option opt_seed = new Option("s", "seed", true, "Seed used by psuedorandom number generator.");
 	
-	private final static Option opt_includeLattice = new Option("il", "include-lattice", false, "Include links from index X to X - 1 mod N when outputting link lengths. If the graph does not actually have lattice connections this is recommended.");
-	private final static Option opt_seed = new Option("seed", "seed", true, "Seed used by psuedorandom number generator.");
+	/*
+	 * Graph generation options
+	 */
+	private final static Option opt_loadGraph = new Option("gl", "graph-load", true, "Path to load a saved graph from.");
+	private final static Option opt_saveGraphDot = new Option("gsd", "graph-save-dot", true, "Path to save a graph after simulation is run on it in plain text (DOT format).");
+	private final static Option opt_saveGraph = new Option("gs", "graph-save", true, "Path to save a graph after simulation is run on it.");
+	private final static Option opt_sandbergGraph = new Option("gS", "graph-sandberg", true, "Generate a directed graph with an edge from x to x -1 mod N for all x = 0 ... N - 1 as described in early section 2.2.1 in \"Searching in a Small World.\" Takes the number of shortcuts to make; the paper specifies 1 shortcut.");
+	private final static Option opt_supernodeGraph = new Option("gU", "graph-supernode", false, "Generate a graph with all nodes connected to a single supernode.");
+	private final static Option opt_size = new Option("gn", "graph-size", true, "Number of nodes in the network.");
+	private final static Option opt_lattice = new Option("gL", "graph-lattice", false, "Generate a graph with undirected lattice links, the given degree distribution, and the given link length distribution. e.g. Topology starts out as a circle.");
+	private final static Option opt_fastGeneration = new Option("gfl", "graph-fast-location", false, "If present, the simulator will assign locations with even spacing and, when using --ideal-link, take shortcuts to speed up graph generation.");
 	
-	private final static Option opt_outputDegree = new Option("outdegree", "output-degree", true, "Output file for degree distribution.");
-	private final static Option opt_outputLink = new Option("outlink", "output-link", true, "Output file for link length distribution.");
-	private final static Option opt_size = new Option("size", "size", true, "Number of nodes in the network. Currently ignored when using --degree unless --force-size is specified.");
-	private final static Option opt_fastGeneration = new Option("fastgen", "fast-generation", false, "If present, the simulator will assign locations with even spacing and, when using --ideal-link, take shortcuts to speed up graph generation.");
-	private final static Option opt_loadGraph = new Option("loadgraph", "load-graph", true, "Path to load a saved graph from.");
-	private final static Option opt_saveGraphDot = new Option("savegdot", "save-graph-dot", true, "Path to save a graph after simulation is run on it in plain text (DOT format).");
-	private final static Option opt_saveGraph = new Option("saveg", "save-graph", true, "Path to save a graph after simulation is run on it.");
-	private final static Option opt_sandbergGraph = new Option("sandgraph", "sandberg-graph", true, "Generate a directed graph with an edge from x to x -1 mod N for all x = 0 ... N - 1 as described in early section 2.2.1 in \"Searching in a Small World.\" Takes the number of shortcuts to make; the paper specifies 1 shortcut.");
-	private final static Option opt_lattice = new Option("lattice", "lattice", false, "Generate a graph with undirected lattice links, the given degree distribution, and the given link length distribution");
-	private final static Option opt_supernodeGraph = new Option("supergraph", "supernode-graph", false, "Generate a graph with all nodes connected to a single supernode.");
-	private final static Option opt_idealLink = new Option("ideallink", "ideal-link", false, "Kleinberg's ideal distribution: proportional to 1/d.");
-	private final static Option opt_flatLink = new Option("flatlink", "flat-link", false, "Intentionally terrible distribution: uniformly random.");
-	private final static Option opt_conformingLink = new Option("conflink", "conforming-link", true, "Distribution conforming to a file. Takes a path to a degree distribution file of the format \"[degree] [number of occurrences]\\n\"\"");
-	private final static Option opt_fixeDegree = new Option("fixeddeg", "fixed-degree", true, "All nodes are as close to the specified degree as practical.");
-	private final static Option opt_conformingDegree = new Option("confdeg", "conforming-degree", true, "Distribution conforming to a file. Takes a path to a degree distribution file of the format \"[degree] [number of occurrences]\\n\"");
-	private final static Option opt_poissonDegree = new Option("poisdeg", "poisson-degree", true, "Distribution conforming to a Poisson distribution with the given mean.");
-	private final static Option opt_route = new Option("route", "route", true, "Simulate routing the given number of requests. Requires that --output-route, --fold-policy, and --route-hops be specified.");
-	private final static Option opt_routeHops = new Option("routehops", "route-hops", true, "The maximum number of hops to route with.");
-	private final static Option opt_outputRoute = new Option("outroute", "output-route", true, "The directory to which routing information is output.");
-	private final static Option opt_foldPolicy = new Option("foldpolicy", "fold-policy", true,  "Path folding policy:");
-	private final static Option opt_lookAhead = new Option("lookahead", "look-ahead", true, "When routing look ahead n hops before routing at a node. Default = 0.");
-	private final static Option opt_routePolicy = new Option("routepolicy", "route-policy", true, "Routing policy used.");
-	private final static Option opt_bootstrap = new Option("bootstrap", "bootstrap", false, "If specified, nodes which lose all their connections due to path folding will be connected to random nodes.");
+	private final static Option opt_outputDegree = new Option("do", "degree-output", true, "Output file for degree distribution.");
+	private final static Option opt_fixeDegree = new Option("df", "degree-fixed", true, "All nodes are as close to the specified degree as practical.");
+	private final static Option opt_conformingDegree = new Option("dc", "degree-conforming", true, "Distribution conforming to a file. Takes a path to a degree distribution file of the format \"[degree] [number of occurrences]\\n\"");
+	private final static Option opt_poissonDegree = new Option("dp", "degree-poisson", true, "Distribution conforming to a Poisson distribution with the given mean.");
 	
-	private final static Option opt_probe = new Option("probe", "probe", true, "Simulate running probes from random locations for the specified number of maximum hops. Requires that --output-probe be specified.");
-	private final static Option opt_metropolisHastings = new Option("mhastings", "metropolis-hastings", false, "If present, probes will be routed with Metropolis-Hastings correction. If not, peers will be selected entirely at random.");
-	private final static Option opt_outputProbe = new Option("outprobe", "output-probe", true, "Directory to which probe distribution is output as \"[node ID] [times seen]\\n\" for a reference of random selection from the whole and at each hop up to the specified maximum hops.");
+	private final static Option opt_outputLink = new Option("lo", "link-output", true, "Output file for link length distribution.");
+	private final static Option opt_includeLattice = new Option("lil", "link-include-lattice", false, "Include links from index X to X - 1 mod N when outputting link lengths. If the graph does not actually have lattice connections this is recommended. If not specified any lattice links will be excluded when outputing link length.");
+	private final static Option opt_idealLink = new Option("li", "link-ideal", false, "Kleinberg's ideal distribution: proportional to 1/d.");
+	private final static Option opt_flatLink = new Option("lf", "link-flat", false, "Intentionally terrible distribution: uniformly random.");
+	private final static Option opt_conformingLink = new Option("lc", "link-conforming", true, "Distribution conforming to a file. Takes a path to a degree distribution file of the format \"[degree] [number of occurrences]\\n\"\"");
+	
+	private final static Option opt_route = new Option("r", "route", true, "Simulate routing the given number of requests. Requires that --route-output and --route-hops be specified.");
+	private final static Option opt_routeHops = new Option("rh", "route-hops", true, "The maximum number of hops to route with.");
+	private final static Option opt_outputRoute = new Option("ro", "route-output", true, "The directory to which routing information is output.");
+	private final static Option opt_foldPolicy = new Option("rfp", "route-fold-policy", true,  "Path folding policy:");
+	private final static Option opt_lookAhead = new Option("rla", "route-look-ahead", true, "When routing look ahead n hops before routing from a node. Default = 1.");
+	private final static Option opt_routePolicy = new Option("rp", "route-policy", true, "Routing policy used.");
+	private final static Option opt_bootstrap = new Option("rb", "route-bootstrap", false, "If specified, nodes which lose all their connections due to path folding will be connected to random nodes.");
+	
+	private final static Option opt_probe = new Option("p", "probe", true, "Simulate running probes from random locations for the specified number of maximum hops. Requires that --probe-output be specified.");
+	private final static Option opt_metropolisHastings = new Option("pmh", "probe-metropolis-hastings", false, "If present, probes will be routed with Metropolis-Hastings correction. If not, peers will be selected entirely at random.");
+	private final static Option opt_outputProbe = new Option("po", "probe-output", true, "Directory to which probe distribution is output as \"[node ID] [times seen]\\n\" for a reference of random selection from the whole and at each hop up to the specified maximum hops.");
 	
 		
 	private Arguments(boolean lattice, boolean fastGeneration, boolean runProbe, boolean metropolisHastings, boolean runRoute, boolean includeLattice, boolean bootstrap,
@@ -103,7 +110,6 @@ public class Arguments {
 	                  FoldingPolicy foldingPolicy,
 	                  RoutingPolicy routingPolicy, int nLookAhead, String logLevel,
 	                  CommandLine cmd) {
-
 		this.lattice = lattice;
 		this.fastGeneration = fastGeneration;
 		this.runProbe = runProbe;
@@ -115,7 +121,7 @@ public class Arguments {
 		this.shortcuts = shortcuts;
 		this.maxHopsProbe = maxHopsProbe;
 		this.maxHopsRoute = maxHopsRequest;
-		this.nRequests = nRequests;
+		this.nRouteRequests = nRequests;
 		this.graphGenerator = graphGenerator;
 		this.degreeInput = degreeInput;
 		this.linkInput = linkInput;
@@ -208,7 +214,7 @@ public class Arguments {
 		options.addOption(opt_route);
 		options.addOption(opt_routeHops);
 		options.addOption(opt_outputRoute);
-		StringBuilder description = new StringBuilder("Path folding policy:");
+		StringBuilder description = new StringBuilder("Path folding policy used. Default is " + FOLDING_DEFAULT.name() +". Possible policies:");
 		for (FoldingPolicy policy : FoldingPolicy.values()) description.append(" ").append(policy);
 		opt_foldPolicy.setDescription(description.toString());
 		options.addOption(opt_foldPolicy);
@@ -240,9 +246,9 @@ public class Arguments {
 	 *
 	 * @param args Arguments to parse.
 	 * @return An Arguments instance with the parsed arguments, or null in the case of an error.
-	 * @throws ParseException Failed to parse command line.
+	 * @throws Exception 
 	 */
-	public static Arguments parse(String[] args) throws ParseException {
+	public static Arguments parse(String[] args) throws Exception {
 		final Options options = generateOptions();
 		final CommandLineParser parser = new GnuParser();
 		final CommandLine cmd = parser.parse(options, args);
@@ -312,31 +318,27 @@ public class Arguments {
 		if (validGeneration == 0 || validGeneration > 1) {
 			System.out.println("Either zero or too many graph generation methods specified.");
 			System.out.println("Valid graph generators are:");
-			System.out.println(" * --load-graph");
-			System.out.println(" * --sandberg-graph with --*-link and --size");
-			System.out.println(" * --*-degree, --*-link, --size, and optionally --lattice");
-			System.out.println(" * --supernode-graph with --size and optionally --lattice");
+			System.out.println(" * --" + opt_loadGraph.getLongOpt());
+			System.out.println(" * --"+opt_sandbergGraph.getLongOpt()+" with --link-* and --"+opt_size.getLongOpt());
+			System.out.println(" * --degree-*, --link-*, --"+opt_size.getLongOpt()+", and optionally --" + opt_lattice.getLongOpt());
+			System.out.println(" * --"+opt_supernodeGraph.getLongOpt()+" with --"+opt_size.getLongOpt()+" and optionally --"+ opt_lattice.getLongOpt());
 			return null;
 		}
 
 		// By this point a single valid graph generator should be specified.
 		assert graphGenerator != null;
 
-		if (cmd.hasOption(opt_route.getLongOpt()) && !cmd.hasOption(opt_foldPolicy.getLongOpt())) {
-			System.out.println("--route was specified, but not --fold-policy.");
-			return null;
-		}
 		if (cmd.hasOption(opt_route.getLongOpt()) && !cmd.hasOption(opt_routeHops.getLongOpt())) {
-			System.out.println("--route was specified, but not --route-hops.");
+			System.out.println("--"+opt_route.getLongOpt()+" was specified, but not --"+opt_routeHops.getLongOpt()+".");
 			return null;
 		}
 		if (cmd.hasOption(opt_route.getLongOpt()) && !cmd.hasOption(opt_outputRoute.getLongOpt())) {
-			System.out.println("--route was specified, but not --output-route.");
+			System.out.println("--"+opt_route.getLongOpt()+" was specified, but not --"+opt_outputRoute.getLongOpt()+".");
 			return null;
 		}
 		
 		if (cmd.hasOption(opt_probe.getLongOpt()) && !cmd.hasOption(opt_outputProbe.getLongOpt())) {
-			System.out.println("--probe was specified, but not --output-probe.");
+			System.out.println("--"+opt_probe.getLongOpt()+" was specified, but not --"+opt_outputProbe.getLongOpt()+".");
 			return null;
 		}
 
@@ -345,16 +347,18 @@ public class Arguments {
 			try {
 				foldingPolicy = FoldingPolicy.valueOf(cmd.getOptionValue(opt_foldPolicy.getLongOpt()));
 			} catch (IllegalArgumentException e) {
-				System.out.println("The folding policy \"" + cmd.getOptionValue("fold-policy") + "\" is invalid.");
-				System.out.println("Possible values are:");
+				StringBuilder b= new StringBuilder();
+				b.append("The folding policy \"");
+				b.append(cmd.getOptionValue(opt_foldPolicy.getLongOpt()));
+				b.append("\" is invalid.\n");
+				b.append("Possible values are:");
 				for (FoldingPolicy policy : FoldingPolicy.values()) {
-					System.out.println(policy.toString());
+					b.append(" ").append(policy.toString());
 				}
-				e.printStackTrace();
-				return null;
+				throw new Exception(b.toString());
 			}
 		} else {
-			foldingPolicy = FoldingPolicy.NONE;
+			foldingPolicy = FOLDING_DEFAULT;
 		}
 
 		final RoutingPolicy routingPolicy;
@@ -363,12 +367,15 @@ public class Arguments {
 			try {
 				routingPolicy = RoutingPolicy.valueOf(policy);
 			} catch (IllegalArgumentException e) {
-				System.out.println("The routing policy \"" + policy + "\" is invalid.");
-				System.out.println("Possible values are:");
+				StringBuilder b = new StringBuilder();
+				b.append("The routing policy \"");
+				b.append(policy);
+				b.append("\" is invalid.\n");
+				b.append("Possible values are:");
 				for (RoutingPolicy policyName : RoutingPolicy.values()) {
-					System.out.println(policyName.toString());
+					b.append(" ").append(policyName.toString());
 				}
-				return null;
+				throw new Exception(b.toString());
 			}
 		} else {
 			routingPolicy = ROUTING_DEFAULT;
@@ -409,7 +416,7 @@ public class Arguments {
 		final int maxHopsProbe = cmd.hasOption(opt_probe.getLongOpt()) ? Integer.valueOf(cmd.getOptionValue(opt_probe.getLongOpt())) : 0;
 		final int maxHopsRequest = cmd.hasOption(opt_routeHops.getLongOpt()) ? Integer.valueOf(cmd.getOptionValue(opt_routeHops.getLongOpt())) : 0;
 		final int shortcuts = cmd.hasOption(opt_sandbergGraph.getLongOpt()) ? Integer.valueOf(cmd.getOptionValue(opt_sandbergGraph.getLongOpt())) : 0;
-		final int nLookAhead = cmd.hasOption(opt_lookAhead.getLongOpt()) ? Integer.valueOf(cmd.getOptionValue(opt_lookAhead.getLongOpt())) : 0;
+		final int nLookAhead = cmd.hasOption(opt_lookAhead.getLongOpt()) ? Integer.valueOf(cmd.getOptionValue(opt_lookAhead.getLongOpt())) : 1;
 		final String logLevel = cmd.hasOption(opt_logLevel.getLongOpt()) ? cmd.getOptionValue(opt_logLevel.getLongOpt()) : LOGGING_DEFAULT.name();
 
 		return new Arguments(lattice, fastGeneration,

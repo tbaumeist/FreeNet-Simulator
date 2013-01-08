@@ -204,23 +204,13 @@ public class Graph {
 		return g;
 	}
 
-	public static Graph connectGraph(ArrayList<SimpleNode> nodes, RandomGenerator rand, LinkLengthSource linkLengthSource) {
-		return connectGraph(new Graph(nodes), rand, linkLengthSource);
-	}
-
-	/**
-	 * Generates a graph with undirected lattice connections, and link length distribution and peer count
-	 * distribution as described in the given sources.
-	 *
-	 * @param nodes Nodes which make up the network.
-	 *
-	 * @see Graph#connectGraph(Graph, org.apache.commons.math3.random.RandomGenerator, org.freenetproject.routing_simulator.graph.linklength.LinkLengthSource)
-	 */
-	public static Graph connectGraphLattice(ArrayList<SimpleNode> nodes, RandomGenerator rand, LinkLengthSource linkLengthSource) {
+	public static Graph connectGraph(ArrayList<SimpleNode> nodes, RandomGenerator rand, LinkLengthSource linkLengthSource, boolean lattice) {
 		Graph graph = new Graph(nodes);
-		graph.addLatticeLinks(false);
+		if(lattice)
+			graph.addLatticeLinks(false);
 		return Graph.connectGraph(graph, rand, linkLengthSource);
 	}
+
 
 	/**
 	 * Writes graph to a file. Format:
@@ -583,7 +573,7 @@ public class Graph {
 			System.out.println("Creating test graph...");
 			RandomGenerator rand = new MersenneTwister(trial);
 			final ArrayList<SimpleNode> nodes = Graph.generateNodes(nNodes, rand, true, new PoissonDegreeSource(12));
-			Graph g = connectGraph(nodes, rand, new KleinbergLinkSource(rand, nodes));
+			Graph g = connectGraph(nodes, rand, new KleinbergLinkSource(rand, nodes), false);
 			System.out.println(g.printGraphStats());
 			int[] uniformWalkDist;
 			int[] weightedWalkDist;

@@ -407,7 +407,7 @@ public class SimpleNode {
 		}
 		
 		private ArrayList<DistanceEntry> getDistances(ArrayList<DistanceEntry> nodes, final double target, final int nLookAhead, int nLevel){
-			if(nLookAhead <= nLevel)
+			if(nLookAhead < nLevel)
 				return nodes;
 			
 			// Get all the next level nodes

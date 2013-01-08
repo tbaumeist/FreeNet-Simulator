@@ -1,12 +1,10 @@
 package org.freenetproject.routing_simulator;
 
-import org.apache.commons.cli.ParseException;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.freenetproject.routing_simulator.graph.Graph;
 import org.freenetproject.routing_simulator.graph.linklength.LinkLengthSource;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
-import org.freenetproject.routing_simulator.util.ArrayStats;
 import org.freenetproject.routing_simulator.util.logging.SimLogger;
 
 import frp.utils.Progresser;
@@ -16,7 +14,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -27,10 +24,8 @@ import java.util.logging.Logger;
  * Class to perform routing simulations on Graphs.
  */
 public class RoutingSim {
-	private final static Logger LOGGER = Logger.getLogger(RoutingSim.class.getName());
-	// generic output format
-	private static final DecimalFormat outputFormat = new DecimalFormat(
-			"0.######"); 
+	private final static Logger LOGGER = Logger.getLogger(RoutingSim.class
+			.getName());
 
 	/**
 	 * Main simulator program. Generate a set of graphs of different parameters,
@@ -38,12 +33,15 @@ public class RoutingSim {
 	 * 
 	 * @param args
 	 *            Command-line arguments; not used.
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
+		new RoutingSim().run(Arguments.parse(args));
+	}
+
+	private void run(Arguments arguments) throws Exception {
 		SimLogger.setup();
-		
-		Arguments arguments = Arguments.parse(args);
+
 		if (arguments == null)
 			System.exit(1);
 
@@ -54,44 +52,15 @@ public class RoutingSim {
 		// upon completion otherwise.
 		long startTime = System.currentTimeMillis();
 		long lastTime = startTime;
-		
+
 		RandomGenerator rand = new MersenneTwister(arguments.seed);
 
 		// Load the graph; otherwise generate.
-		Graph g;
-		if (arguments.graphGenerator == GraphGenerator.LOAD) {
-			g = Graph.read(arguments.graphInput, rand);
-		} else {
-			final ArrayList<SimpleNode> nodes = Graph.generateNodes(
-					arguments.networkSize, rand, arguments.fastGeneration,
-					arguments.getDegreeSource(rand));
-			final LinkLengthSource linkLengthSource = arguments
-					.getLinkLengthSource(rand, nodes);
+		Graph g = this.generateGraph(arguments);
 
-			switch (arguments.graphGenerator) {
-			case SANDBERG:
-				g = Graph.connectSandberg(nodes, arguments.shortcuts,
-						linkLengthSource);
-				break;
-			case SUPER_NODE:
-				g = Graph.connectSuperNode(nodes, arguments.lattice);
-				break;
-			case STANDARD:
-				if (arguments.lattice)
-					g = Graph
-							.connectGraphLattice(nodes, rand, linkLengthSource);
-				else
-					g = Graph.connectGraph(nodes, rand, linkLengthSource);
-				break;
-			default:
-				throw new IllegalStateException(
-						"Missing implementation piece for graph generation method "
-								+ arguments.graphGenerator.name());
-			}
-		}
-
-		LOGGER.fine("Before completion graph stats\n" + g.printGraphStats());
-		LOGGER.fine("Graph generation took (ms): " + (System.currentTimeMillis() - lastTime));
+		LOGGER.info("Initial graph stats\n" + g.printGraphStats());
+		LOGGER.fine("Graph generation took (ms): "
+				+ (System.currentTimeMillis() - lastTime));
 		lastTime = System.currentTimeMillis();
 
 		if (arguments.runProbe) {
@@ -100,15 +69,16 @@ public class RoutingSim {
 			rand = new MersenneTwister(arguments.seed);
 			// Uniform probes if --metropolis-hastings is not specified.
 			// TODO: Pass in checked directory.
-			probeDistribution(g, rand, arguments.maxHopsProbe, arguments.outputProbe,
-					!arguments.metropolisHastings);
+			probeDistribution(g, rand, arguments.maxHopsProbe,
+					arguments.outputProbe, !arguments.metropolisHastings);
 		}
 
 		if (arguments.runRoute) {
 			rand = new MersenneTwister(arguments.seed);
-			simulate(g, rand, arguments.nRequests, arguments.foldingPolicy,
+			simulate(g, rand, arguments.nRouteRequests, arguments.foldingPolicy,
 					arguments.routingPolicy, arguments.bootstrap,
-					arguments.outputRoute, arguments.maxHopsRoute, arguments.nLookAhead);
+					arguments.outputRoute, arguments.maxHopsRoute,
+					arguments.nLookAhead);
 		}
 
 		if (arguments.degreeOutput != null) {
@@ -156,10 +126,45 @@ public class RoutingSim {
 		if (arguments.graphOutputText != null)
 			g.writeText(arguments.graphOutputText);
 
-		LOGGER.fine("Route/Probe time taken (ms): " + (System.currentTimeMillis() - lastTime));
-		LOGGER.fine("Total time taken (ms): " + (System.currentTimeMillis() - startTime));
+		LOGGER.fine("Route/Probe time taken (ms): "
+				+ (System.currentTimeMillis() - lastTime));
+		LOGGER.fine("Total time taken (ms): "
+				+ (System.currentTimeMillis() - startTime));
+
+		LOGGER.info("Final graph stats\n" + g.printGraphStats());
+	}
+	
+	private Graph generateGraph(Arguments arguments){
+		RandomGenerator rand = new MersenneTwister(arguments.seed);
+		Graph g =null;
 		
-		LOGGER.info("After completion graph stats\n" + g.printGraphStats());
+		if (arguments.graphGenerator == GraphGenerator.LOAD) {
+			g = Graph.read(arguments.graphInput, rand);
+		} else {
+			final ArrayList<SimpleNode> nodes = Graph.generateNodes(
+					arguments.networkSize, rand, arguments.fastGeneration,
+					arguments.getDegreeSource(rand));
+			final LinkLengthSource linkLengthSource = arguments
+					.getLinkLengthSource(rand, nodes);
+
+			switch (arguments.graphGenerator) {
+			case SANDBERG:
+				g = Graph.connectSandberg(nodes, arguments.shortcuts,
+						linkLengthSource);
+				break;
+			case SUPER_NODE:
+				g = Graph.connectSuperNode(nodes, arguments.lattice);
+				break;
+			case STANDARD:
+				g = Graph.connectGraph(nodes, rand, linkLengthSource, arguments.lattice);
+				break;
+			default:
+				throw new IllegalStateException(
+						"Missing implementation piece for graph generation method "
+								+ arguments.graphGenerator.name());
+			}
+		}
+		return g;
 	}
 
 	/**
@@ -191,8 +196,7 @@ public class RoutingSim {
 	}
 
 	private static void probeDistribution(Graph g, RandomGenerator rand,
-			int maxHops,
-			final String containingPath, boolean uniform) {
+			int maxHops, final String containingPath, boolean uniform) {
 		File output = new File(containingPath);
 		assert output.isDirectory();
 		if (!output.exists()) {
@@ -279,20 +283,19 @@ public class RoutingSim {
 		// Print out current run progress for users benefit
 		System.out.println("\tRouting Simulation");
 		Progresser prog = new Progresser(System.out, nRequests);
-		
+
 		/*
-		 * Path length distribution is stored in an array. The index
-		 * is the path length and the value is the number of times
-		 * that it occurs.
+		 * Path length distribution is stored in an array. The index is the path
+		 * length and the value is the number of times that it occurs.
 		 */
-		int[] pathLengthDist = new int[maxHTL+1];
+		int[] pathLengthDist = new int[maxHTL + 1];
 		for (int i = 0; i < nRequests; i++) {
-			
-			//if(i % 10000 == 0)
-			//	System.out.println("\nConnections: " + g.nEdges());
-			
+
+			// if(i % 10000 == 0)
+			// System.out.println("\nConnections: " + g.nEdges());
+
 			prog.hit();
-			
+
 			final SimpleNode origin = g.getNode(rand.nextInt(g.size()));
 			/*
 			 * It causes distortion to select among node locations for
@@ -307,7 +310,7 @@ public class RoutingSim {
 			// Count successes.
 			if (result.success)
 				successes++;
-				
+
 			pathLengthDist[result.pathLength]++;
 
 			/*
@@ -333,21 +336,23 @@ public class RoutingSim {
 		try {
 			PrintStream stream = new PrintStream(new File(outputRoute
 					+ File.separator + "routing_stats.dat"));
-			
+
 			stream.println("Disconnected from folding : " + disconnectedFolding);
 			stream.println("Disconnected from bootstrapping : "
 					+ disconnectedBootstrap);
 			stream.println("Routing success rate : " + (double) successes
 					/ nRequests * 100);
 			stream.println("Routing requests count : " + nRequests);
-			stream.println("Failed routing request count : " + (nRequests - successes));
+			stream.println("Failed routing request count : "
+					+ (nRequests - successes));
 			stream.println("Node count : " + g.size());
 			stream.println("Mean path length : " + (double) totalPathLength
 					/ nRequests);
 			stream.close();
-			
+
 			// Path length distribution
-			File output = new File(outputRoute + File.separator + "path_lengths.dat");
+			File output = new File(outputRoute + File.separator
+					+ "path_lengths.dat");
 			writeArray(pathLengthDist, output);
 		} catch (FileNotFoundException e) {
 			System.out.println("Cannot open file \"" + outputRoute
@@ -453,7 +458,7 @@ public class RoutingSim {
 		double m = mean(a);
 		double stdDev = stdDev(a);
 		double pct50 = a[((int) (a.length * 0.5))];
-		//double pct80 = a[((int) (a.length * 0.8))];
+		// double pct80 = a[((int) (a.length * 0.8))];
 		double pct90 = a[((int) (a.length * 0.9))];
 		double pct97 = a[((int) (a.length * 0.97))];
 		double pct99 = a[((int) (a.length * 0.99))];

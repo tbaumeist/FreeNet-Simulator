@@ -1,0 +1,9 @@
+This project was orignally part of the Thynix routing-simulator.
+*https://github.com/Thynix/routing-simulator*
+
+In order to improve accuracy and meet our project requirements we made several changes to the routing-simulation code.
+-General restructuring of inputs to program to decrease complexity.
+-Renamed several outputs for clarity
+-Fixed an issue with where a node as adding itself to the LRU queue.
+-Added logging with a level switch
+-Save graph files to a DOT file format

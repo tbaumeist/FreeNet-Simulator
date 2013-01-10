@@ -77,13 +77,13 @@ public class Test_Graph {
 	 * @param destination File to write the graph to.
 	 * @throws IOException
 	 */
-	private void writeToFile(final Graph graph, final File destination) throws IOException {
+	private void writeToFile(final Graph graph, final File destination) throws Exception {
 		assert !destination.exists() || destination.delete();
 		final DataOutputStream outputStream = new DataOutputStream(new FileOutputStream(destination));
 		graph.write(outputStream);
 	}
 
-	private Graph readFromFile(final File source) throws IOException {
+	private Graph readFromFile(final File source) throws Exception {
 		assert source.exists();
 		final DataInputStream inputStream = new DataInputStream(new FileInputStream(source));
 		return Graph.read(inputStream, getRandom());
@@ -133,7 +133,7 @@ public class Test_Graph {
 	 * @throws IOException Error writing to or reading from temporary file.
 	 */
 	@Test
-	public void saveLoad() throws IOException {
+	public void saveLoad() throws Exception {
 		// TODO: Write to memory instead of a temporary file.
 		final Graph written = generateKleinberg();
 		writeToFile(written, temporary);
@@ -149,7 +149,7 @@ public class Test_Graph {
 	 * @throws IOException Error writing to or reading from temporary file.
 	 */
 	@Test
-	public void saveLoaded() throws IOException {
+	public void saveLoaded() throws Exception {
 		final Graph original = generateKleinberg();
 		writeToFile(original, temporary);
 

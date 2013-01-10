@@ -42,13 +42,12 @@ public class Arguments {
 	/*
 	 * Public attributes of the arguments class
 	 */
-	public final boolean lattice, fastGeneration, runProbe, metropolisHastings, runRoute, includeLattice, bootstrap;
+	public final boolean lattice, fastGeneration, runProbe, metropolisHastings, runRoute, excludeLattice, bootstrap;
 	public final int seed, networkSize, shortcuts, maxHopsProbe, maxHopsRoute, nRouteRequests, nLookAhead;
 	public final GraphGenerator graphGenerator;
 	public final DataInputStream degreeInput, linkInput, graphInput;
-	public final DataOutputStream degreeOutput, linkOutput, graphOutput;
-	public final PrintStream graphOutputText;
-	public final String outputProbe, outputRoute, logLevel;
+	public final DataOutputStream degreeOutput, linkOutput, graphOutput, graphOutputText, routingSimOutput;
+	public final String outputProbe, logLevel;
 	public final FoldingPolicy foldingPolicy;
 	public final RoutingPolicy routingPolicy;
 
@@ -83,14 +82,14 @@ public class Arguments {
 	private final static Option opt_poissonDegree = new Option("dp", "degree-poisson", true, "Distribution conforming to a Poisson distribution with the given mean.");
 	
 	private final static Option opt_outputLink = new Option("lo", "link-output", true, "Output file for link length distribution.");
-	private final static Option opt_includeLattice = new Option("lil", "link-include-lattice", false, "Include links from index X to X - 1 mod N when outputting link lengths. If the graph does not actually have lattice connections this is recommended. If not specified any lattice links will be excluded when outputing link length.");
+	private final static Option opt_excludeLattice = new Option("lel", "link-exclude-lattice", false, "Exclude links from index X to X - 1 mod N when outputting link lengths. If the graph does not actually have lattice connections this is not recommended. If not specified any lattice links will be included when outputing link length.");
 	private final static Option opt_idealLink = new Option("li", "link-ideal", false, "Kleinberg's ideal distribution: proportional to 1/d.");
 	private final static Option opt_flatLink = new Option("lf", "link-flat", false, "Intentionally terrible distribution: uniformly random.");
 	private final static Option opt_conformingLink = new Option("lc", "link-conforming", true, "Distribution conforming to a file. Takes a path to a degree distribution file of the format \"[degree] [number of occurrences]\\n\"\"");
 	
 	private final static Option opt_route = new Option("r", "route", true, "Simulate routing the given number of requests. Requires that --route-output and --route-hops be specified.");
 	private final static Option opt_routeHops = new Option("rh", "route-hops", true, "The maximum number of hops to route with.");
-	private final static Option opt_outputRoute = new Option("ro", "route-output", true, "The directory to which routing information is output.");
+	private final static Option opt_outputRoute = new Option("ro", "route-output", true, "The file to which routing information is output.");
 	private final static Option opt_foldPolicy = new Option("rfp", "route-fold-policy", true,  "Path folding policy:");
 	private final static Option opt_lookAhead = new Option("rla", "route-look-ahead", true, "When routing look ahead n hops before routing from a node. Default = 1.");
 	private final static Option opt_routePolicy = new Option("rp", "route-policy", true, "Routing policy used.");
@@ -101,12 +100,12 @@ public class Arguments {
 	private final static Option opt_outputProbe = new Option("po", "probe-output", true, "Directory to which probe distribution is output as \"[node ID] [times seen]\\n\" for a reference of random selection from the whole and at each hop up to the specified maximum hops.");
 	
 		
-	private Arguments(boolean lattice, boolean fastGeneration, boolean runProbe, boolean metropolisHastings, boolean runRoute, boolean includeLattice, boolean bootstrap,
+	private Arguments(boolean lattice, boolean fastGeneration, boolean runProbe, boolean metropolisHastings, boolean runRoute, boolean excludeLattice, boolean bootstrap,
 	                  int seed, int networkSize, int shortcuts, int maxHopsProbe, int maxHopsRequest, int nRequests,
 	                  GraphGenerator graphGenerator,
 	                  DataInputStream degreeInput, DataInputStream linkInput, DataInputStream graphInput,
-	                  DataOutputStream degreeOutput, DataOutputStream linkOutput, DataOutputStream graphOutput, PrintStream graphOutputText,
-	                  String outputProbe, String outputRoute,
+	                  DataOutputStream degreeOutput, DataOutputStream linkOutput, DataOutputStream graphOutput, DataOutputStream graphOutputText,
+	                  String outputProbe, DataOutputStream outputRoute,
 	                  FoldingPolicy foldingPolicy,
 	                  RoutingPolicy routingPolicy, int nLookAhead, String logLevel,
 	                  CommandLine cmd) {
@@ -131,10 +130,10 @@ public class Arguments {
 		this.graphOutput = graphOutput;
 		this.graphOutputText = graphOutputText;
 		this.outputProbe = outputProbe;
-		this.outputRoute = outputRoute;
+		this.routingSimOutput = outputRoute;
 		this.foldingPolicy = foldingPolicy;
 		this.routingPolicy = routingPolicy;
-		this.includeLattice = includeLattice;
+		this.excludeLattice = excludeLattice;
 		this.nLookAhead = nLookAhead;
 		this.logLevel = logLevel;
 		this.cmd = cmd;
@@ -184,7 +183,7 @@ public class Arguments {
 
 		options.addOption(opt_outputDegree);
 		options.addOption(opt_outputLink);
-		options.addOption(opt_includeLattice);
+		options.addOption(opt_excludeLattice);
 		options.addOption(opt_help);
 		options.addOption(opt_version);
 		options.addOption(opt_seed);
@@ -394,16 +393,15 @@ public class Arguments {
 
 		//Check if output paths are directories that can be written to, and create them if they do not exist.
 		if (cmd.hasOption(opt_outputProbe.getLongOpt()) && (writableDirectory(cmd.getOptionValue(opt_outputProbe.getLongOpt()))) == null) return null;
-		if (cmd.hasOption(opt_outputRoute.getLongOpt()) && (writableDirectory(cmd.getOptionValue(opt_outputRoute.getLongOpt()))) == null) return null;
 
 		//Check that output files exist and are writable or can be created.
-		final DataOutputStream degreeOutput, linkOutput, graphOutput;
-		final PrintStream graphOutputText;
+		final DataOutputStream degreeOutput, linkOutput, graphOutput, graphOutputText, routingSimOutput;
 		try {
 			degreeOutput = writableFile(opt_outputDegree.getLongOpt(), cmd);
 			linkOutput = writableFile(opt_outputLink.getLongOpt(), cmd);
 			graphOutput = writableFile(opt_saveGraph.getLongOpt(), cmd);
-			graphOutputText = cmd.hasOption(opt_saveGraphDot.getLongOpt())? new PrintStream( writableFile(opt_saveGraphDot.getLongOpt(), cmd)) : null;
+			graphOutputText = writableFile(opt_saveGraphDot.getLongOpt(), cmd);
+			routingSimOutput = writableFile(opt_outputRoute.getLongOpt(), cmd);
 		} catch (FileNotFoundException e) {
 			return null;
 		}
@@ -423,13 +421,13 @@ public class Arguments {
 				cmd.hasOption(opt_probe.getLongOpt()),
 				cmd.hasOption(opt_metropolisHastings.getLongOpt()),
 				cmd.hasOption(opt_route.getLongOpt()),
-				cmd.hasOption(opt_includeLattice.getLongOpt()),
+				cmd.hasOption(opt_excludeLattice.getLongOpt()),
 				cmd.hasOption(opt_bootstrap.getLongOpt()), seed, networkSize,
 				shortcuts, maxHopsProbe, maxHopsRequest, nRequests,
 				graphGenerator, degreeInput, linkInput, graphInput,
 				degreeOutput, linkOutput, graphOutput, graphOutputText,
 				cmd.getOptionValue(opt_outputProbe.getLongOpt()),
-				cmd.getOptionValue(opt_outputRoute.getLongOpt()),
+				routingSimOutput,
 				foldingPolicy, routingPolicy, nLookAhead, logLevel, cmd);
 	}
 }

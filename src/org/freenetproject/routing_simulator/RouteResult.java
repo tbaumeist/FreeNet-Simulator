@@ -1,5 +1,6 @@
 package org.freenetproject.routing_simulator;
 
+import org.freenetproject.routing_simulator.graph.folding.PathFoldingResult;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ public class RouteResult {
 	/**
 	 * List of nodes caused to have zero degree by path folding.
 	 */
-	public final ArrayList<SimpleNode> disconnected;
+	public final PathFoldingResult foldingResult;
 	/**
 	 * True if and only if the routing arrived at its exact target.
 	 */
@@ -23,12 +24,12 @@ public class RouteResult {
 	public final int pathLength;
 
 	public RouteResult(boolean success, int pathLength) {
-		this(success, new ArrayList<SimpleNode>(), pathLength);
+		this(success, new PathFoldingResult(), pathLength);
 	}
 
-	public RouteResult(boolean success, ArrayList<SimpleNode> disconnected, int pathLength) {
+	public RouteResult(boolean success, PathFoldingResult foldingResult, int pathLength) {
 		this.success = success;
-		this.disconnected = disconnected;
+		this.foldingResult = foldingResult;
 		this.pathLength = pathLength;
 	}
 }

@@ -316,8 +316,10 @@ public class RoutingSim {
 			 * become disconnected in the process.
 			 */
 			Queue<SimpleNode> disconnected = new LinkedList<SimpleNode>(
-					result.disconnected);
-			experiment.disconnectedFolding(result.disconnected.size());
+					result.foldingResult.getDisconnected());
+			experiment.disconnectedFolding(disconnected.size());
+			experiment.foldingOperations(result.foldingResult.getFoldingOperations());
+			
 			while (bootstrap && !disconnected.isEmpty()) {
 				for (SimpleNode additional : g.bootstrap(disconnected.remove(),
 						rand)) {

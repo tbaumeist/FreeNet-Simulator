@@ -5,6 +5,7 @@ import org.freenetproject.routing_simulator.FoldingPolicy;
 import org.freenetproject.routing_simulator.RouteResult;
 import org.freenetproject.routing_simulator.RoutingPolicy;
 import org.freenetproject.routing_simulator.graph.Location;
+import org.freenetproject.routing_simulator.graph.folding.PathFoldingResult;
 import org.freenetproject.routing_simulator.util.DistanceEntry;
 import org.freenetproject.routing_simulator.util.lru.LRUQueue;
 
@@ -159,6 +160,8 @@ public class SimpleNode {
 	 */
 	private boolean offerPathFold(final SimpleNode peer, double acceptanceRate) {
 		// If already at degree, don't fold if not accepted.
+		
+		//if(atDegree()) return false;
 		if (atDegree() && rand.nextDouble() > acceptanceRate) return false;
 
 		final SimpleNode least = peer.disconnectCandidate();
@@ -190,7 +193,7 @@ public class SimpleNode {
 	 * @param nodeChain Nodes which make up the path the request has followed. First element is the origin of the
 	 *                  request; last is the endpoint.
 	 */
-	private static ArrayList<SimpleNode> successFreenet(final ArrayList<SimpleNode> nodeChain) {
+	private static PathFoldingResult successFreenet(final ArrayList<SimpleNode> nodeChain) {
 		//TODO: Include HTL in the chain to test not path folding at high HTL.
 		// Iterate uses previous(); first node is size() - 2: second-to-last as intended.
 		ListIterator<SimpleNode> iterator = nodeChain.listIterator(nodeChain.size() - 1);
@@ -210,7 +213,7 @@ public class SimpleNode {
 			foldingFrom = to;
 		}
 
-		final ArrayList<SimpleNode> disconnected = new ArrayList<SimpleNode>();
+		final PathFoldingResult result = new PathFoldingResult();
 		iterator = nodeChain.listIterator(nodeChain.size() - 1);
 		// Fold starting from the second-to-last node.
 		while (iterator.hasPrevious()) {
@@ -224,13 +227,14 @@ public class SimpleNode {
 			// If the fold is accepted and there was a candidate for disconnection, add it.
 			final SimpleNode candidate = foldingFrom.disconnectCandidate();
 			if (foldingTo.offerPathFold(foldingFrom, 0.07)) {
-				if (candidate != null && candidate.degree() == 0) disconnected.add(candidate);
+				result.folded();
+				if (candidate != null && candidate.degree() == 0) result.addDisconnected(candidate);
 				if (iterator.hasPrevious()) {
 					foldingFrom = iterator.previous();
 				}
 			}
 		}
-		return disconnected;
+		return result;
 	}
 
 	/**
@@ -251,6 +255,8 @@ public class SimpleNode {
 		if (endpoint == this) return null;
 		// Do not path fold to a node which is already connected.
 		if (this.connections.contains(endpoint)) return null;
+		
+		//if(atDegree()) return null;
 		if (atDegree() && rand.nextDouble() < acceptanceRate) return null;
 		// Always accept if not at degree.
 
@@ -311,12 +317,12 @@ public class SimpleNode {
 	 *                      SANDBERG_DIRECTED policy. (Directed and first connection lattice.)
 	 * @see org.freenetproject.routing_simulator.FoldingPolicy
 	 */
-	private static ArrayList<SimpleNode> successSandberg(final ArrayList<SimpleNode> nodeChain, FoldingPolicy foldingPolicy) {
+	private static PathFoldingResult successSandberg(final ArrayList<SimpleNode> nodeChain, FoldingPolicy foldingPolicy) {
 		final ListIterator<SimpleNode> iterator = nodeChain.listIterator(nodeChain.size() - 1);
-
+		final PathFoldingResult result = new PathFoldingResult();
 		final SimpleNode endpoint;
 		if (iterator.hasNext()) endpoint = iterator.next();
-		else return new ArrayList<SimpleNode>();
+		else return result;
 
 		// Should have final element as endpoint.
 		assert endpoint.equals(nodeChain.get(nodeChain.size() - 1));
@@ -324,10 +330,13 @@ public class SimpleNode {
 		// Back up iterator to avoid attempting to fold endpoint to endpoint.
 		iterator.previous();
 
-		final ArrayList<SimpleNode> disconnectedNodes = new ArrayList<SimpleNode>();
+		
 		while (iterator.hasPrevious()) {
 			SimpleNode disconnected = iterator.previous().offerShortcutFold(endpoint, 0.07, foldingPolicy);
-			if (disconnected != null && disconnected.degree() == 0) disconnectedNodes.add(disconnected);
+			if (disconnected != null && disconnected.degree() == 0) result.addDisconnected(disconnected);
+			
+			if(disconnected != null)
+				result.folded();
 		}
 
 		/*
@@ -335,14 +344,14 @@ public class SimpleNode {
 		 * fold to the endpoint too and gain a connection again. This behavior does not have a real-world
 		 * analog.
 		 */
-		Iterator<SimpleNode> disconnectIterator = disconnectedNodes.iterator();
+		Iterator<SimpleNode> disconnectIterator = result.getDisconnected().iterator();
 		while (disconnectIterator.hasNext()) {
 			if (disconnectIterator.next().degree() != 0) disconnectIterator.remove();
 		}
 
-		for (SimpleNode node : disconnectedNodes) assert node.degree() == 0;
+		for (SimpleNode node : result.getDisconnected()) assert node.degree() == 0;
 
-		return disconnectedNodes;
+		return result;
 	}
 
 	/**
@@ -351,11 +360,11 @@ public class SimpleNode {
 	 * @param policy
 	 * @return List of nodes which lost all their peers through folding.
 	 */
-	private static ArrayList<SimpleNode> success(final ArrayList<SimpleNode> nodeChain, FoldingPolicy policy) {
+	private static PathFoldingResult success(final ArrayList<SimpleNode> nodeChain, FoldingPolicy policy) {
 		// Can't fold if no nodes involved, (local node was closest right off) or if one node nowhere to fold to.
-		if (nodeChain.size() < 2) return new ArrayList<SimpleNode>();
+		if (nodeChain.size() < 2) return new PathFoldingResult();
 		switch (policy) {
-		case NONE: return new ArrayList<SimpleNode>();
+		case NONE: return new PathFoldingResult();
 		case FREENET: return successFreenet(nodeChain);
 		case SANDBERG_NO_LATTICE:
 		case SANDBERG:

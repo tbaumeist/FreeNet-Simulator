@@ -8,10 +8,11 @@ import org.freenetproject.routing_simulator.util.ArrayUtil;
 public class RoutingExp {
 	private int successes = 0, disconnectedFolding = 0,
 			disconnectedBootstrap = 0, totalSuccessPathLength = 0,
-			nRequests = 0, foldingOperations = 0;
+			nRequests = 0, foldingOperations = 0, maxHTL = 0;
 	private int[] pathLengthDist;
 
 	public RoutingExp(int maxHTL, int nRequests) {
+		this.maxHTL = maxHTL;
 		this.pathLengthDist = new int[maxHTL + 1];
 		this.nRequests = nRequests;
 	}
@@ -61,6 +62,8 @@ public class RoutingExp {
 		b.append("\n");
 
 		b.append("\n* Note failed requests are not included in the stats below *\n\n");
+		b.append("Maximum path length :             \t").append(this.maxHTL);
+		b.append("\n");
 		b.append("Mean successful path length :     \t").append(
 				(double) totalSuccessPathLength / nRequests);
 		b.append("\n");

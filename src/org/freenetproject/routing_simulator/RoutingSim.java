@@ -6,6 +6,7 @@ import org.freenetproject.routing_simulator.experiment.RoutingExp;
 import org.freenetproject.routing_simulator.graph.Graph;
 import org.freenetproject.routing_simulator.graph.linklength.LinkLengthSource;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
+import org.freenetproject.routing_simulator.util.ArrayUtil;
 import org.freenetproject.routing_simulator.util.logging.SimLogger;
 
 import frp.utils.Progresser;
@@ -134,9 +135,7 @@ public class RoutingSim {
 		for (int degree : g.degrees()) {
 			degrees[degree]++;
 		}
-		for (int i = 0; i < g.maxDegree(); i++) {
-			degreeOutput.write((i + " " + degrees[i] + "\n").getBytes());
-		}
+		degreeOutput.write(ArrayUtil.stringArray(degrees).getBytes());
 	}
 
 	private Graph generateGraph(Arguments arguments) throws Exception {

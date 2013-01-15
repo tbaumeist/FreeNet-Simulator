@@ -112,6 +112,13 @@ public class SimpleNode {
 	public boolean atDegree() {
 		return desiredDegree <= degree();
 	}
+	
+	/**
+	 * @return The maximum desired degree of this node
+	 */
+	public int getDesiredDegree(){
+		return this.desiredDegree;
+	}
 
 	/**
 	 * Get the routing distance to a location.

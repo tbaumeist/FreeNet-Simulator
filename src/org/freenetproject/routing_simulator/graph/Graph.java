@@ -30,10 +30,10 @@ public class Graph {
 	private final ArrayList<SimpleNode> nodes;
 
 	/**
-	 * Probability of not making a connection with a peer which has its desired
-	 * degree.
+	 * Probability of stopping an attempt to connect a node to its
+	 * maximum desired degree
 	 */
-	private static final double rejectProbability = 0.98;
+	private static final double rejectProbability = 0.01;
 
 	/**
 	 * Private constructor; call one of the generator functions instead.
@@ -235,11 +235,15 @@ public class Graph {
 				continue;
 
 			// Make connections until at desired degree.
-			while (!src.atDegree()) {
+			double stopProbStep = rejectProbability / src.getDesiredDegree();
+			double stopProb = 0;
+			// Random probability to stop trying (increases the more we try)
+			while (!src.atDegree() && rand.nextDouble() > stopProb) {
+				stopProb += stopProbStep;
 				destination = linkLengthSource.getPeer(src);
 				if (src == destination
 						|| src.isConnected(destination)
-						|| (destination.atDegree() && rand.nextDouble() < rejectProbability))
+						|| destination.atDegree())
 					continue;
 				src.connect(destination);
 			}

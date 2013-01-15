@@ -27,6 +27,7 @@ public class SimpleNode {
 	private final double location;
 	private final ArrayList<SimpleNode> connections;
 	private final int desiredDegree;
+	private int successfulRequestCount = 0;
 
 	private final RandomGenerator rand;
 
@@ -43,6 +44,11 @@ public class SimpleNode {
 	public void write(DataOutputStream out) throws IOException {
 		out.writeDouble(location);
 		out.writeInt(desiredDegree);
+	}
+	
+	private void successfulRequest(SimpleNode foldingFrom){
+		this.successfulRequestCount++;
+		this.lruQueue.push(foldingFrom);
 	}
 
 	/**
@@ -216,7 +222,7 @@ public class SimpleNode {
 			if(to == foldingFrom)
 				continue; 
 			assert to.isConnected(foldingFrom);
-			to.lruQueue.push(foldingFrom);
+			to.successfulRequest(foldingFrom);
 			foldingFrom = to;
 		}
 

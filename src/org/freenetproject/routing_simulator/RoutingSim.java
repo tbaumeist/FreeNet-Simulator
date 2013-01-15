@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Scanner;
 import java.util.logging.Logger;
 
 /**
@@ -40,7 +41,7 @@ public class RoutingSim {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) {
-		try{
+		try{		
 			new RoutingSim().run(Arguments.parse(args));
 		}catch(Exception e){
 			LOGGER.severe("Error running simulator: " + e.getMessage());
@@ -57,6 +58,13 @@ public class RoutingSim {
 
 		SimLogger.setup(arguments.logLevel);
 		LOGGER.fine(arguments.toString());
+		
+		if(arguments.pause){
+			System.out.println("Press enter to continue...");
+			Scanner scan = new Scanner(System.in);
+			scan.nextLine();
+			scan.close();
+		}
 
 		// Time tracking: report time taken for each graph setting if verbose;
 		// upon completion otherwise.

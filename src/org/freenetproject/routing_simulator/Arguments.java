@@ -42,7 +42,7 @@ public class Arguments {
 	/*
 	 * Public attributes of the arguments class
 	 */
-	public final boolean lattice, fastGeneration, runProbe, metropolisHastings, runRoute, excludeLattice, bootstrap;
+	public final boolean lattice, fastGeneration, runProbe, metropolisHastings, runRoute, excludeLattice, bootstrap, pause;
 	public final int seed, networkSize, shortcuts, maxHopsProbe, maxHopsRoute, nRouteRequests, nLookAhead;
 	public final GraphGenerator graphGenerator;
 	public final DataInputStream degreeInput, linkInput, graphInput;
@@ -63,6 +63,7 @@ public class Arguments {
 	private final static Option opt_version = new Option("v", "version", false, "Display software version.");
 	private final static Option opt_logLevel = new Option("l", "log-level", true, "Level of logging: ");
 	private final static Option opt_seed = new Option("s", "seed", true, "Seed used by psuedorandom number generator.");
+	private final static Option opt_pause = new Option("p", "pause", false, "Pause the program before execution. (Allows external programs to be attached).");
 	
 	/*
 	 * Graph generation options
@@ -107,7 +108,7 @@ public class Arguments {
 	                  DataOutputStream degreeOutput, DataOutputStream linkOutput, DataOutputStream graphOutput, DataOutputStream graphOutputText,
 	                  String outputProbe, DataOutputStream outputRoute,
 	                  FoldingPolicy foldingPolicy,
-	                  RoutingPolicy routingPolicy, int nLookAhead, String logLevel,
+	                  RoutingPolicy routingPolicy, int nLookAhead, String logLevel, boolean pause,
 	                  CommandLine cmd) {
 		this.lattice = lattice;
 		this.fastGeneration = fastGeneration;
@@ -136,6 +137,7 @@ public class Arguments {
 		this.excludeLattice = excludeLattice;
 		this.nLookAhead = nLookAhead;
 		this.logLevel = logLevel;
+		this.pause = pause;
 		this.cmd = cmd;
 	}
 	
@@ -187,7 +189,7 @@ public class Arguments {
 		options.addOption(opt_help);
 		options.addOption(opt_version);
 		options.addOption(opt_seed);
-
+		options.addOption(opt_pause);
 		//Graphs: General generation options
 		options.addOption(opt_size);
 		// TODO: Reinstate or possibly remove.
@@ -408,6 +410,7 @@ public class Arguments {
 
 		final boolean lattice = cmd.hasOption(opt_lattice.getLongOpt());
 		final boolean fastGeneration = cmd.hasOption(opt_fastGeneration.getLongOpt());
+		final boolean pause = cmd.hasOption(opt_pause.getLongOpt());
 		final int seed = cmd.hasOption(opt_seed.getLongOpt()) ? Integer.valueOf(cmd.getOptionValue(opt_seed.getLongOpt())) : (int)System.currentTimeMillis();
 		final int networkSize = cmd.hasOption(opt_size.getLongOpt()) ? Integer.valueOf(cmd.getOptionValue(opt_size.getLongOpt())) : 0;
 		final int nRequests = cmd.hasOption(opt_route.getLongOpt()) ? Integer.valueOf(cmd.getOptionValue(opt_route.getLongOpt())) : 0;
@@ -428,6 +431,7 @@ public class Arguments {
 				degreeOutput, linkOutput, graphOutput, graphOutputText,
 				cmd.getOptionValue(opt_outputProbe.getLongOpt()),
 				routingSimOutput,
-				foldingPolicy, routingPolicy, nLookAhead, logLevel, cmd);
+				foldingPolicy, routingPolicy, nLookAhead, logLevel, 
+				pause, cmd);
 	}
 }

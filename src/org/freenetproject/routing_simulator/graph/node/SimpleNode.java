@@ -510,17 +510,17 @@ public class SimpleNode {
 			ArrayList<DistanceEntry> peers = new ArrayList<DistanceEntry>();
 			
 			for (SimpleNode peer : node.getConnections()) {
-				peers.add(new DistanceEntry(peer.distanceToLoc(target), peer, peer, 0));
+				peers.add(new DistanceEntry(peer.distanceToLoc(target), peer, peer, 1));
 			}
 			
-			peers = getDistances(peers, target, nLookAhead, 0);
+			peers = getDistances(peers, target, nLookAhead, 1);
 			
 			Collections.sort(peers);
 			return peers;
 		}
 		
 		private ArrayList<DistanceEntry> getDistances(ArrayList<DistanceEntry> nodes, final double target, final int nLookAhead, int nLevel){
-			if(nLookAhead < nLevel)
+			if(nLookAhead <= nLevel)
 				return nodes;
 			
 			// Get all the next level nodes
@@ -538,14 +538,13 @@ public class SimpleNode {
 			
 			// add the next level entries to the list
 			// remove duplicates by randomly selecting one of the entries
-			Random r = new Random();
 			for(List<DistanceEntry> entry : nextLevelPeers.values()){
 				// does the list already have that location, if so it is closer because
 				// it will have a smaller level
 				if(nodes.contains(entry.get(0)))
 					continue;
 				// add a random item
-				nodes.add(entry.get(r.nextInt(entry.size())));
+				nodes.add(entry.get(entry.get(0).routeToNode.getRandom().nextInt(entry.size())));
 			}
 			
 			// get the next level

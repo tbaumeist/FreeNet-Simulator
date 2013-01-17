@@ -17,7 +17,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -53,7 +52,7 @@ public class RoutingSim {
 		
 		SimLogger.setup();
 
-		if (arguments == null)
+		if (arguments == null) 
 			System.exit(1);
 
 		SimLogger.setup(arguments.logLevel);
@@ -97,7 +96,8 @@ public class RoutingSim {
 			this.simulate(g, rand, arguments.nRouteRequests,
 					arguments.foldingPolicy, arguments.routingPolicy,
 					arguments.bootstrap, arguments.routingSimOutput,
-					arguments.maxHopsRoute, arguments.nLookAhead);
+					arguments.maxHopsRoute, arguments.nLookAhead,
+					!arguments.oldPathFolding);
 		}
 		
 		LOGGER.info("Final graph stats\n" + g.printGraphStats());
@@ -289,10 +289,11 @@ public class RoutingSim {
 	private void simulate(Graph g, RandomGenerator rand, int nRequests,
 			final FoldingPolicy foldingPolicy,
 			final RoutingPolicy routingPolicy, final boolean bootstrap,
-			final OutputStream outputRoute, final int maxHTL, final int nLookAhead) throws IOException {
+			final OutputStream outputRoute, final int maxHTL, final int nLookAhead,
+			final boolean newFoldingMethod) throws IOException {
 
 		// Print out current run progress for users benefit
-		System.out.println("\tRouting Simulation");
+		System.out.println("\n\tRouting Simulation");
 		Progresser prog = new Progresser(System.out, nRequests);
 		
 		String beforeStats = "\nGraph initial stats\n" + g.printGraphStats();
@@ -311,7 +312,7 @@ public class RoutingSim {
 			 */
 			final SimpleNode destination = g.getNode(rand.nextInt(g.size()));
 			final RouteResult result = origin.route(destination, maxHTL,
-					routingPolicy, foldingPolicy, nLookAhead);
+					routingPolicy, foldingPolicy, nLookAhead, newFoldingMethod);
 
 			experiment.record(result.success, result.pathLength);
 

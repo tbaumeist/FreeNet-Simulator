@@ -30,6 +30,8 @@ public class SimpleNode {
 	private int successfulRequestCount = 0;
 
 	private final RandomGenerator rand;
+	
+	private final int SUCCESSFUL_REQUEST_THREASHOLD = 10;
 
 	/**Index of this node in the graph; purely for convenience, not used in any decision making.*/
 	public final int index;
@@ -162,6 +164,29 @@ public class SimpleNode {
 		lruQueue.pushLeast(least);
 		return least;
 	}
+	
+	private boolean hasOpenPeer(){
+		if(!this.atDegree())
+			return true;
+		return this.successfulRequestCount >= SUCCESSFUL_REQUEST_THREASHOLD;
+	}
+	
+	private boolean offerPathFold_New(final SimpleNode peer){
+		if(!hasOpenPeer() || !peer.hasOpenPeer()) return false;
+		
+		if(peer.atDegree())
+			peer.disconnect(peer.disconnectCandidate());
+		if(this.atDegree())
+			this.disconnect(this.disconnectCandidate());
+		
+		connect(peer);
+		lruQueue.remove(peer);
+		lruQueue.pushLeast(peer);
+		peer.lruQueue.remove(this);
+		peer.lruQueue.pushLeast(this);
+		return true;
+	}
+	
 
 	/**
 	 * Called to offer a connection between the specified peer and this one during path folding.
@@ -173,8 +198,6 @@ public class SimpleNode {
 	 */
 	private boolean offerPathFold(final SimpleNode peer, double acceptanceRate) {
 		// If already at degree, don't fold if not accepted.
-		
-		//if(atDegree()) return false;
 		if (atDegree() && rand.nextDouble() > acceptanceRate) return false;
 
 		final SimpleNode least = peer.disconnectCandidate();
@@ -206,10 +229,18 @@ public class SimpleNode {
 	 * @param nodeChain Nodes which make up the path the request has followed. First element is the origin of the
 	 *                  request; last is the endpoint.
 	 */
-	private static PathFoldingResult successFreenet(final ArrayList<SimpleNode> nodeChain) {
-		//TODO: Include HTL in the chain to test not path folding at high HTL.
-		// Iterate uses previous(); first node is size() - 2: second-to-last as intended.
-		ListIterator<SimpleNode> iterator = nodeChain.listIterator(nodeChain.size() - 1);
+	private static PathFoldingResult successFreenet(final ArrayList<SimpleNode> nodeChain, boolean newPathFolding) {
+		if(newPathFolding)
+			return foldPath_New(nodeChain);
+		return foldPath(nodeChain);
+	}
+	
+	private static PathFoldingResult foldPath_New(final ArrayList<SimpleNode> nodeChain) {
+		// TODO: Include HTL in the chain to test not path folding at high HTL.
+		// Iterate uses previous(); first node is size() - 2: second-to-last as
+		// intended.
+		ListIterator<SimpleNode> iterator = nodeChain.listIterator(nodeChain
+				.size() - 1);
 
 		// TODO: More general variable name - from?
 		// Get final element.
@@ -219,8 +250,8 @@ public class SimpleNode {
 		while (iterator.hasPrevious()) {
 			SimpleNode to = iterator.previous();
 			// Check if you are looking at the same node
-			if(to == foldingFrom)
-				continue; 
+			if (to == foldingFrom)
+				continue;
 			assert to.isConnected(foldingFrom);
 			to.successfulRequest(foldingFrom);
 			foldingFrom = to;
@@ -231,17 +262,80 @@ public class SimpleNode {
 		// Fold starting from the second-to-last node.
 		while (iterator.hasPrevious()) {
 			final SimpleNode foldingTo = iterator.previous();
+			// Only send a folding request if from has room in its routing table
+			// //if(!foldingFrom.hasOpenPeer()) foldingFrom = foldingTo;
 			// Do not path fold to self.
-			if (foldingFrom == foldingTo) continue;
+			if (foldingFrom == foldingTo)
+				continue;
 			// Do not path fold to a node which is already connected.
-			if (foldingFrom.isConnected(foldingTo)) continue;
-			//If the path fold is accepted, the one before the accepting one starts another fold.
-			//Use 7% acceptance as rough result from my node.
-			// If the fold is accepted and there was a candidate for disconnection, add it.
+			if (foldingFrom.isConnected(foldingTo))
+				continue;
+			// If the path fold is accepted, the one before the accepting one
+			// starts another fold.
+			// Use 7% acceptance as rough result from my node.
+			// If the fold is accepted and there was a candidate for
+			// disconnection, add it.
 			final SimpleNode candidate = foldingFrom.disconnectCandidate();
 			if (foldingTo.offerPathFold(foldingFrom, 0.07)) {
 				result.folded();
-				if (candidate != null && candidate.degree() == 0) result.addDisconnected(candidate);
+				if (candidate != null && candidate.degree() == 0)
+					result.addDisconnected(candidate);
+				if (iterator.hasPrevious()) {
+					foldingFrom = iterator.previous();
+				}
+			}
+		}
+		return result;
+	}
+
+	private static PathFoldingResult foldPath(final ArrayList<SimpleNode> nodeChain) {
+		// TODO: Include HTL in the chain to test not path folding at high HTL.
+		// Iterate uses previous(); first node is size() - 2: second-to-last as
+		// intended.
+		ListIterator<SimpleNode> iterator = nodeChain.listIterator(nodeChain
+				.size() - 1);
+
+		// TODO: More general variable name - from?
+		// Get final element.
+		SimpleNode foldingFrom = nodeChain.get(nodeChain.size() - 1);
+
+		// Promote successful peers in the LRU queue.
+		while (iterator.hasPrevious()) {
+			SimpleNode to = iterator.previous();
+			// Check if you are looking at the same node
+			if (to == foldingFrom)
+				continue;
+			assert to.isConnected(foldingFrom);
+			to.successfulRequest(foldingFrom);
+			foldingFrom = to;
+		}
+		
+		/// Bug fix in original path folding (reset foldingFrom back to the end of the chain)
+		foldingFrom = nodeChain.get(nodeChain.size() - 1);
+
+		final PathFoldingResult result = new PathFoldingResult();
+		iterator = nodeChain.listIterator(nodeChain.size() - 1);
+		// Fold starting from the second-to-last node.
+		while (iterator.hasPrevious()) {
+			final SimpleNode foldingTo = iterator.previous();
+			// Only send a folding request if from has room in its routing table
+			// //if(!foldingFrom.hasOpenPeer()) foldingFrom = foldingTo;
+			// Do not path fold to self.
+			if (foldingFrom == foldingTo)
+				continue;
+			// Do not path fold to a node which is already connected.
+			if (foldingFrom.isConnected(foldingTo))
+				continue;
+			// If the path fold is accepted, the one before the accepting one
+			// starts another fold.
+			// Use 7% acceptance as rough result from my node.
+			// If the fold is accepted and there was a candidate for
+			// disconnection, add it.
+			final SimpleNode candidate = foldingFrom.disconnectCandidate();
+			if (foldingTo.offerPathFold(foldingFrom, 0.07)) {
+				result.folded();
+				if (candidate != null && candidate.degree() == 0)
+					result.addDisconnected(candidate);
 				if (iterator.hasPrevious()) {
 					foldingFrom = iterator.previous();
 				}
@@ -373,12 +467,12 @@ public class SimpleNode {
 	 * @param policy
 	 * @return List of nodes which lost all their peers through folding.
 	 */
-	private static PathFoldingResult success(final ArrayList<SimpleNode> nodeChain, FoldingPolicy policy) {
+	private static PathFoldingResult success(final ArrayList<SimpleNode> nodeChain, FoldingPolicy policy, boolean newFoldingMethod) {
 		// Can't fold if no nodes involved, (local node was closest right off) or if one node nowhere to fold to.
 		if (nodeChain.size() < 2) return new PathFoldingResult();
 		switch (policy) {
 		case NONE: return new PathFoldingResult();
-		case FREENET: return successFreenet(nodeChain);
+		case FREENET: return successFreenet(nodeChain, newFoldingMethod);
 		case SANDBERG_NO_LATTICE:
 		case SANDBERG:
 		case SANDBERG_DIRECTED: return successSandberg(nodeChain, policy);
@@ -397,7 +491,7 @@ public class SimpleNode {
 	 * @return Routing was successful: the target location was reached.
 	 *
 	 */
-	public RouteResult route(final SimpleNode target, final int hopsToLive, final RoutingPolicy routingPolicy, final FoldingPolicy foldingPolicy, final int nLookAhead) {
+	public RouteResult route(final SimpleNode target, final int hopsToLive, final RoutingPolicy routingPolicy, final FoldingPolicy foldingPolicy, final int nLookAhead, final boolean newFoldingMethod) {
 		/*
 		 * NOTE: This is static and package-local: not thread-safe! The simulator is as of this writing strictly
 		 * single-threaded. The request ID could be an argument otherwise.
@@ -405,9 +499,9 @@ public class SimpleNode {
 		requestID++;
 		// TODO: Duplicate argument value determination between these methods: chain and target.
 		switch (routingPolicy) {
-			case GREEDY: return greedyRoute(target.getLocation(), hopsToLive, nLookAhead, false, new greedy(), foldingPolicy, new ArrayList<SimpleNode>());
-			case LOOP_DETECTION: return greedyRoute(target.getLocation(), hopsToLive, nLookAhead, false, new loopDetection(), foldingPolicy, new ArrayList<SimpleNode>());
-			case BACKTRACKING: return greedyRoute(target.getLocation(), hopsToLive, nLookAhead, true, new loopDetection(), foldingPolicy, new ArrayList<SimpleNode>());
+			case GREEDY: return greedyRoute(target.getLocation(), hopsToLive, nLookAhead, false, newFoldingMethod, new greedy(), foldingPolicy, new ArrayList<SimpleNode>());
+			case LOOP_DETECTION: return greedyRoute(target.getLocation(), hopsToLive, nLookAhead, false, newFoldingMethod, new loopDetection(), foldingPolicy, new ArrayList<SimpleNode>());
+			case BACKTRACKING: return greedyRoute(target.getLocation(), hopsToLive, nLookAhead, true, newFoldingMethod, new loopDetection(), foldingPolicy, new ArrayList<SimpleNode>());
 			default: throw new IllegalStateException("Routing for policy " + routingPolicy.name() + " not implemented.");
 		}
 	}
@@ -507,7 +601,7 @@ public class SimpleNode {
 	 * considered a success. Changes this so if hops runs out the 
 	 * routing failed (if it didn't reach target).
 	 */
-	private RouteResult greedyRoute(final double target, int hopsToLive, final int nLookAhead, final boolean backtracking, final PeerSelector peerSelector, final FoldingPolicy foldingPolicy, final ArrayList<SimpleNode> chain) {
+	private RouteResult greedyRoute(final double target, int hopsToLive, final int nLookAhead, final boolean backtracking, final boolean newFoldingMethod, final PeerSelector peerSelector, final FoldingPolicy foldingPolicy, final ArrayList<SimpleNode> chain) {
 		if (hopsToLive <= 0) throw new IllegalStateException("hopsToLive must be positive. It is " + hopsToLive);
 
 		/*
@@ -516,7 +610,7 @@ public class SimpleNode {
 		 */
 		if (this.getLocation() == target) {
 			chain.add(this);
-			return new RouteResult(true, success(chain, foldingPolicy), chain.size());
+			return new RouteResult(true, success(chain, foldingPolicy, newFoldingMethod), chain.size());
 		}
 
 		// Find node next node to route to.
@@ -534,12 +628,12 @@ public class SimpleNode {
 		if (hopsToLive == 0) {
 			return new RouteResult(false, chain.size());
 		} else {
-			final RouteResult result = next.greedyRoute(target, hopsToLive, nLookAhead, backtracking, peerSelector, foldingPolicy, chain);
+			final RouteResult result = next.greedyRoute(target, hopsToLive, nLookAhead, backtracking, newFoldingMethod, peerSelector, foldingPolicy, chain);
 			// If the routing did not succeed and did not use all remaining hops, backtrack if enabled.
 			final int additionalHops = result.pathLength - pathLength;
 			if (backtracking && !result.success && additionalHops < hopsToLive) {
 				//System.out.println("BACKTRACKING");
-				return this.greedyRoute(target, hopsToLive - additionalHops, nLookAhead, backtracking, peerSelector, foldingPolicy, chain);
+				return this.greedyRoute(target, hopsToLive - additionalHops, nLookAhead, backtracking, newFoldingMethod, peerSelector, foldingPolicy, chain);
 			} else {
 				return result;
 			}
@@ -626,6 +720,7 @@ public class SimpleNode {
 
 		connections.remove(other);
 		lruQueue.remove(other);
+		this.successfulRequestCount = 0;
 	}
 
 	/**

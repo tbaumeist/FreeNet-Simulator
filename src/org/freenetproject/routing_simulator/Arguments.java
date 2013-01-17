@@ -42,7 +42,7 @@ public class Arguments {
 	/*
 	 * Public attributes of the arguments class
 	 */
-	public final boolean lattice, fastGeneration, runProbe, metropolisHastings, runRoute, excludeLattice, bootstrap, pause;
+	public final boolean lattice, fastGeneration, runProbe, metropolisHastings, runRoute, excludeLattice, bootstrap, pause, oldPathFolding;
 	public final int seed, networkSize, shortcuts, maxHopsProbe, maxHopsRoute, nRouteRequests, nLookAhead;
 	public final GraphGenerator graphGenerator;
 	public final DataInputStream degreeInput, linkInput, graphInput;
@@ -95,6 +95,7 @@ public class Arguments {
 	private final static Option opt_lookAhead = new Option("rla", "route-look-ahead", true, "When routing look ahead n hops before routing from a node. Default = 1.");
 	private final static Option opt_routePolicy = new Option("rp", "route-policy", true, "Routing policy used.");
 	private final static Option opt_bootstrap = new Option("rb", "route-bootstrap", false, "If specified, nodes which lose all their connections due to path folding will be connected to random nodes.");
+	private final static Option opt_routeOldPathFolding = new Option("rop", "route-old-path-fold", false, "Use the old path folding mechanism. (7% chance to randomly path fold).");
 	
 	private final static Option opt_probe = new Option("p", "probe", true, "Simulate running probes from random locations for the specified number of maximum hops. Requires that --probe-output be specified.");
 	private final static Option opt_metropolisHastings = new Option("pmh", "probe-metropolis-hastings", false, "If present, probes will be routed with Metropolis-Hastings correction. If not, peers will be selected entirely at random.");
@@ -108,7 +109,7 @@ public class Arguments {
 	                  DataOutputStream degreeOutput, DataOutputStream linkOutput, DataOutputStream graphOutput, DataOutputStream graphOutputText,
 	                  String outputProbe, DataOutputStream outputRoute,
 	                  FoldingPolicy foldingPolicy,
-	                  RoutingPolicy routingPolicy, int nLookAhead, String logLevel, boolean pause,
+	                  RoutingPolicy routingPolicy, int nLookAhead, String logLevel, boolean pause, boolean oldPathFolding,
 	                  CommandLine cmd) {
 		this.lattice = lattice;
 		this.fastGeneration = fastGeneration;
@@ -138,6 +139,7 @@ public class Arguments {
 		this.nLookAhead = nLookAhead;
 		this.logLevel = logLevel;
 		this.pause = pause;
+		this.oldPathFolding = oldPathFolding;
 		this.cmd = cmd;
 	}
 	
@@ -220,6 +222,7 @@ public class Arguments {
 		opt_foldPolicy.setDescription(description.toString());
 		options.addOption(opt_foldPolicy);
 		options.addOption(opt_lookAhead);
+		options.addOption(opt_routeOldPathFolding);
 
 		description = new StringBuilder("Routing policy used. Default is " + ROUTING_DEFAULT.name() +". Possible policies:");
 		for (RoutingPolicy policy : RoutingPolicy.values()) description.append(" ").append(policy.name());
@@ -411,6 +414,7 @@ public class Arguments {
 		final boolean lattice = cmd.hasOption(opt_lattice.getLongOpt());
 		final boolean fastGeneration = cmd.hasOption(opt_fastGeneration.getLongOpt());
 		final boolean pause = cmd.hasOption(opt_pause.getLongOpt());
+		final boolean oldPathFolding = cmd.hasOption(opt_routeOldPathFolding.getLongOpt());
 		final int seed = cmd.hasOption(opt_seed.getLongOpt()) ? Integer.valueOf(cmd.getOptionValue(opt_seed.getLongOpt())) : (int)System.currentTimeMillis();
 		final int networkSize = cmd.hasOption(opt_size.getLongOpt()) ? Integer.valueOf(cmd.getOptionValue(opt_size.getLongOpt())) : 0;
 		final int nRequests = cmd.hasOption(opt_route.getLongOpt()) ? Integer.valueOf(cmd.getOptionValue(opt_route.getLongOpt())) : 0;
@@ -432,6 +436,6 @@ public class Arguments {
 				cmd.getOptionValue(opt_outputProbe.getLongOpt()),
 				routingSimOutput,
 				foldingPolicy, routingPolicy, nLookAhead, logLevel, 
-				pause, cmd);
+				pause, oldPathFolding, cmd);
 	}
 }

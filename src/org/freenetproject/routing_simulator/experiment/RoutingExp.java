@@ -1,8 +1,5 @@
 package org.freenetproject.routing_simulator.experiment;
 
-import java.io.File;
-import java.io.PrintStream;
-
 import org.freenetproject.routing_simulator.util.ArrayUtil;
 
 public class RoutingExp {

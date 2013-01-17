@@ -507,6 +507,7 @@ public class SimpleNode {
 		public abstract SimpleNode selectPeer(final double target, final SimpleNode from, final ArrayList<SimpleNode> chain, final int nLookAhead);
 		
 		protected ArrayList<DistanceEntry> getDistances(SimpleNode node, final double target, final int nLookAhead){
+			// TODO: If look ahead is greater than one it drastically decreases performance
 			ArrayList<DistanceEntry> peers = new ArrayList<DistanceEntry>();
 			
 			for (SimpleNode peer : node.getConnections()) {

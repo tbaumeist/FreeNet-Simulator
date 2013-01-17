@@ -229,6 +229,8 @@ public class Graph {
 	 */
 	public static Graph connectGraph(Graph g, RandomGenerator rand,
 			LinkLengthSource linkLengthSource) {
+		
+		// TODO: Modifications to this have caused an increase in resources required to run simulator
 		SimpleNode destination;
 		for (SimpleNode src : g.nodes) {
 			if (src.atDegree())

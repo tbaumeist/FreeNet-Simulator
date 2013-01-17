@@ -701,6 +701,7 @@ public class SimpleNode {
 	 * @param other node to disconnect from.
 	 */
 	public void disconnect(SimpleNode other) {
+		this.successfulRequestCount = 0;
 		this.disconnectOutgoing(other);
 		other.disconnectOutgoing(this);
 	}
@@ -717,7 +718,6 @@ public class SimpleNode {
 
 		connections.remove(other);
 		lruQueue.remove(other);
-		this.successfulRequestCount = 0;
 	}
 
 	/**

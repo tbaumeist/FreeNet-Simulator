@@ -113,6 +113,10 @@ public class SimpleNode {
 		if (desiredDegree < 1) this.desiredDegree = 1;
 		else this.desiredDegree = desiredDegree;
 	}
+	
+	public RandomGenerator getRandom(){
+		return this.rand;
+	}
 
 	/**
 	 * @return True if the node is at (or above) its desired degree.
@@ -171,20 +175,27 @@ public class SimpleNode {
 		return this.successfulRequestCount >= SUCCESSFUL_REQUEST_THREASHOLD;
 	}
 	
-	private boolean offerPathFold_New(final SimpleNode peer){
-		if(!hasOpenPeer() || !peer.hasOpenPeer()) return false;
+	private List<SimpleNode> offerPathFold_New(final SimpleNode peer){
+		List<SimpleNode> foldedOut = new ArrayList<SimpleNode>();
+		if(!hasOpenPeer() || !peer.hasOpenPeer()) return foldedOut;
 		
+		SimpleNode theirCand = peer.disconnectCandidate();
+		SimpleNode ourCand = this.disconnectCandidate();
 		if(peer.atDegree())
-			peer.disconnect(peer.disconnectCandidate());
+			peer.disconnect(theirCand);
 		if(this.atDegree())
-			this.disconnect(this.disconnectCandidate());
+			this.disconnect(ourCand);
+		
+		foldedOut.add(theirCand);
+		foldedOut.add(ourCand);
 		
 		connect(peer);
+		
 		lruQueue.remove(peer);
 		lruQueue.pushLeast(peer);
 		peer.lruQueue.remove(this);
 		peer.lruQueue.pushLeast(this);
-		return true;
+		return foldedOut;
 	}
 	
 
@@ -230,12 +241,6 @@ public class SimpleNode {
 	 *                  request; last is the endpoint.
 	 */
 	private static PathFoldingResult successFreenet(final ArrayList<SimpleNode> nodeChain, boolean newPathFolding) {
-		if(newPathFolding)
-			return foldPath_New(nodeChain);
-		return foldPath(nodeChain);
-	}
-	
-	private static PathFoldingResult foldPath_New(final ArrayList<SimpleNode> nodeChain) {
 		// TODO: Include HTL in the chain to test not path folding at high HTL.
 		// Iterate uses previous(); first node is size() - 2: second-to-last as
 		// intended.
@@ -256,30 +261,45 @@ public class SimpleNode {
 			to.successfulRequest(foldingFrom);
 			foldingFrom = to;
 		}
+				
+		if(newPathFolding)
+			return foldPath_New(nodeChain);
+		return foldPath(nodeChain);
+	}
+	
+	private static PathFoldingResult foldPath_New(final ArrayList<SimpleNode> nodeChain) {
+		SimpleNode foldingFrom = nodeChain.get(nodeChain.size() - 1);
 
 		final PathFoldingResult result = new PathFoldingResult();
-		iterator = nodeChain.listIterator(nodeChain.size() - 1);
+		ListIterator<SimpleNode> iterator = nodeChain.listIterator(nodeChain.size() - 1);
 		// Fold starting from the second-to-last node.
+		
 		while (iterator.hasPrevious()) {
 			final SimpleNode foldingTo = iterator.previous();
 			// Only send a folding request if from has room in its routing table
-			// //if(!foldingFrom.hasOpenPeer()) foldingFrom = foldingTo;
+			if(!foldingFrom.hasOpenPeer()){ 
+				foldingFrom = foldingTo;
+				continue;
+			}
+			// 5% chance to reset path folding
+			if(foldingFrom.getRandom().nextDouble() > 0.95)
+				foldingFrom = foldingTo;
 			// Do not path fold to self.
 			if (foldingFrom == foldingTo)
 				continue;
 			// Do not path fold to a node which is already connected.
 			if (foldingFrom.isConnected(foldingTo))
 				continue;
-			// If the path fold is accepted, the one before the accepting one
-			// starts another fold.
-			// Use 7% acceptance as rough result from my node.
-			// If the fold is accepted and there was a candidate for
-			// disconnection, add it.
-			final SimpleNode candidate = foldingFrom.disconnectCandidate();
-			if (foldingTo.offerPathFold(foldingFrom, 0.07)) {
+			if(!foldingTo.hasOpenPeer()) 
+				continue;
+			List<SimpleNode> foldedOut = foldingTo.offerPathFold_New(foldingFrom);
+			if(foldedOut.size() > 0){
+				// path folding took place
 				result.folded();
-				if (candidate != null && candidate.degree() == 0)
-					result.addDisconnected(candidate);
+				for(SimpleNode candidate : foldedOut){
+					if (candidate != null && candidate.degree() == 0)
+						result.addDisconnected(candidate);
+				}
 				if (iterator.hasPrevious()) {
 					foldingFrom = iterator.previous();
 				}
@@ -289,37 +309,14 @@ public class SimpleNode {
 	}
 
 	private static PathFoldingResult foldPath(final ArrayList<SimpleNode> nodeChain) {
-		// TODO: Include HTL in the chain to test not path folding at high HTL.
-		// Iterate uses previous(); first node is size() - 2: second-to-last as
-		// intended.
-		ListIterator<SimpleNode> iterator = nodeChain.listIterator(nodeChain
-				.size() - 1);
-
-		// TODO: More general variable name - from?
-		// Get final element.
+		/// Bug fix in original path folding (reset foldingFrom back to the end of the chain)
 		SimpleNode foldingFrom = nodeChain.get(nodeChain.size() - 1);
 
-		// Promote successful peers in the LRU queue.
-		while (iterator.hasPrevious()) {
-			SimpleNode to = iterator.previous();
-			// Check if you are looking at the same node
-			if (to == foldingFrom)
-				continue;
-			assert to.isConnected(foldingFrom);
-			to.successfulRequest(foldingFrom);
-			foldingFrom = to;
-		}
-		
-		/// Bug fix in original path folding (reset foldingFrom back to the end of the chain)
-		foldingFrom = nodeChain.get(nodeChain.size() - 1);
-
 		final PathFoldingResult result = new PathFoldingResult();
-		iterator = nodeChain.listIterator(nodeChain.size() - 1);
+		ListIterator<SimpleNode> iterator = nodeChain.listIterator(nodeChain.size() - 1);
 		// Fold starting from the second-to-last node.
 		while (iterator.hasPrevious()) {
 			final SimpleNode foldingTo = iterator.previous();
-			// Only send a folding request if from has room in its routing table
-			// //if(!foldingFrom.hasOpenPeer()) foldingFrom = foldingTo;
 			// Do not path fold to self.
 			if (foldingFrom == foldingTo)
 				continue;

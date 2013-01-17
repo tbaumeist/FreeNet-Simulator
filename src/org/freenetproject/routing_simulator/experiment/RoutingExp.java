@@ -62,7 +62,7 @@ public class RoutingExp {
 		b.append("Maximum path length :             \t").append(this.maxHTL);
 		b.append("\n");
 		b.append("Mean successful path length :     \t").append(
-				(double) totalSuccessPathLength / nRequests);
+				(double) totalSuccessPathLength / successes);
 		b.append("\n");
 		b.append("\n");
 

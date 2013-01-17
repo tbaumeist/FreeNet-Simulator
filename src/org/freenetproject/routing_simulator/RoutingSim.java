@@ -56,7 +56,7 @@ public class RoutingSim {
 			System.exit(1);
 
 		SimLogger.setup(arguments.logLevel);
-		LOGGER.fine(arguments.toString());
+		LOGGER.info(arguments.toString());
 		
 		if(arguments.pause){
 			System.out.println("Press enter to continue...");
@@ -73,11 +73,11 @@ public class RoutingSim {
 		// Load the graph; otherwise generate.
 		Graph g = this.generateGraph(arguments);
 
-		LOGGER.info("Initial graph stats\n" + g.printGraphStats());
+		LOGGER.warning("Initial graph stats\n" + g.printGraphStats());
 		memory = new ByteArrayOutputStream();
 		this.writeDegreeOutput(g, memory);
-		LOGGER.fine("Initial degree distribution\nDegree Count\n"+memory.toString());
-		LOGGER.fine("Graph generation took (ms): "
+		LOGGER.info("Initial degree distribution\nDegree Count\n"+memory.toString());
+		LOGGER.info("Graph generation took (ms): "
 				+ (System.currentTimeMillis() - lastTime));
 		lastTime = System.currentTimeMillis();
 
@@ -100,12 +100,12 @@ public class RoutingSim {
 					!arguments.oldPathFolding);
 		}
 		
-		LOGGER.info("Final graph stats\n" + g.printGraphStats());
+		LOGGER.warning("Final graph stats\n" + g.printGraphStats());
 
 		this.writeDegreeOutput(g, arguments.degreeOutput);
 		memory = new ByteArrayOutputStream();
 		this.writeDegreeOutput(g, memory);
-		LOGGER.fine("Final degree distribution\nDegree Count\n"+memory.toString());
+		LOGGER.info("Final degree distribution\nDegree Count\n"+memory.toString());
 
 		this.writeLinkOutput(g, arguments.linkOutput, arguments.excludeLattice);
 
@@ -115,9 +115,9 @@ public class RoutingSim {
 		if (arguments.graphOutputText != null)
 			g.writeText(arguments.graphOutputText);
 
-		LOGGER.fine("Route/Probe time taken (ms): "
+		LOGGER.info("Route/Probe time taken (ms): "
 				+ (System.currentTimeMillis() - lastTime));
-		LOGGER.fine("Total time taken (ms): "
+		LOGGER.info("Total time taken (ms): "
 				+ (System.currentTimeMillis() - startTime));		
 	}
 
@@ -290,7 +290,7 @@ public class RoutingSim {
 			final FoldingPolicy foldingPolicy,
 			final RoutingPolicy routingPolicy, final boolean bootstrap,
 			final OutputStream outputRoute, final int maxHTL, final int nLookAhead,
-			final boolean newFoldingMethod) throws IOException {
+			final boolean newFoldingMethod) throws Exception {
 
 		// Print out current run progress for users benefit
 		System.out.println("\n\tRouting Simulation");
@@ -340,7 +340,7 @@ public class RoutingSim {
 		outputRoute.write(beforeStats.getBytes());
 		outputRoute.write("\n\nFinal graph stats\n".getBytes());
 		outputRoute.write(g.printGraphStats().getBytes());
-		LOGGER.fine(experiment.toString());
+		LOGGER.info(experiment.toString());
 	}
 
 	/**

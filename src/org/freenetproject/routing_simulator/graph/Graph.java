@@ -9,10 +9,22 @@ import org.freenetproject.routing_simulator.graph.linklength.KleinbergLinkSource
 import org.freenetproject.routing_simulator.graph.linklength.LinkLengthSource;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.freenetproject.routing_simulator.util.logging.SimLogger;
+import org.gephi.data.attributes.api.AttributeController;
+import org.gephi.data.attributes.api.AttributeModel;
+import org.gephi.graph.api.DirectedGraph;
+import org.gephi.graph.api.GraphModel;
+import org.gephi.statistics.plugin.GraphDistance;
+import org.openide.util.Lookup;
 
+import frp.gephi.GephiHelper;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringBufferInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -299,7 +311,7 @@ public class Graph {
 			}
 
 			output.writeInt(writtenConnections);
-			LOGGER.fine("Writing " + writtenConnections
+			LOGGER.info("Writing " + writtenConnections
 					+ " connections to output stream.");
 			assert connectionIndexes.size() == writtenConnections * 2;
 			for (Integer index : connectionIndexes) {
@@ -321,7 +333,7 @@ public class Graph {
 	 *            stream to write graph to.
 	 * @throws Exception
 	 */
-	public void writeText(DataOutputStream output) throws Exception {
+	public void writeText(OutputStream output) throws Exception {
 		try {
 
 			/*
@@ -337,7 +349,7 @@ public class Graph {
 				}
 			}
 
-			LOGGER.fine("Writing " + connectionIndexes.size()
+			LOGGER.info("Writing " + connectionIndexes.size()
 					+ " connections to output stream.");
 
 			output.write("digraph G {\n".getBytes());
@@ -408,10 +420,24 @@ public class Graph {
 
 	/**
 	 * Print some topology statistics.
+	 * @throws Exception 
 	 */
-	public String printGraphStats() {
+	public String printGraphStats() throws Exception {
 		int nEdges = nEdges();
 		double meanDegree = ((double) (2 * nEdges)) / nodes.size();
+		
+		// gephi stats
+		ByteArrayOutputStream dotOutput = new ByteArrayOutputStream();
+		this.writeText(dotOutput);
+		DirectedGraph graph = new GephiHelper().loadGraphFile(
+				new ByteArrayInputStream(dotOutput.toByteArray()),".dot");
+		AttributeModel attributeModel = Lookup.getDefault().lookup(
+				AttributeController.class).getModel();
+		GraphModel graphModel = graph.getGraphModel();
+		GraphDistance distance = new GraphDistance();
+		distance.execute(graphModel, attributeModel);
+		
+		
 		StringBuilder b = new StringBuilder();
 		b.append("Graph stats:");
 		b.append("\nSize:					" + size());
@@ -420,6 +446,8 @@ public class Graph {
 		b.append("\nMax degree:				" + maxDegree());
 		b.append("\nMean degree:				" + meanDegree);
 		b.append("\nDegree stddev:				" + Math.sqrt(degreeVariance()));
+		b.append("\nNetwork diameter:			"+ distance.getDiameter());
+		b.append("\nAverage path length:			"+ distance.getPathLength());
 		b.append("\nMean local clustering coefficient:	"
 				+ meanLocalClusterCoeff());
 		b.append("\nGlobal clustering coefficient:		" + globalClusterCoeff());
@@ -603,7 +631,7 @@ public class Graph {
 			if (origin == dest)
 				dupCount++;
 		}
-		LOGGER.fine("Origin selected as dest on " + dupCount + " walks out of "
+		LOGGER.info("Origin selected as dest on " + dupCount + " walks out of "
 				+ nWalks);
 		return choiceFreq;
 	}

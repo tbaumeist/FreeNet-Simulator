@@ -24,10 +24,10 @@ public class SimLogger {
 		
 		switch(level){
 		case DETAILED:
-			logger.setLevel(Level.ALL);
+			logger.setLevel(Level.INFO);
 			break;
 		default:
-			logger.setLevel(Level.INFO);
+			logger.setLevel(Level.WARNING);
 		}
 
 		logger.getHandlers()[0].setFormatter(new SimFormatter());

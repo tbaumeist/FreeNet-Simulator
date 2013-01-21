@@ -527,13 +527,13 @@ public class SimpleNode {
 			// Get all the next level nodes
 			Hashtable<Double, List<DistanceEntry>> nextLevelPeers = new Hashtable<Double, List<DistanceEntry>>();
 			for (DistanceEntry dist : nodes) {
-				if(dist.nLevel != nLevel)
+				if(dist.getLookAheadLevel() != nLevel)
 					continue;
-				for(SimpleNode p : dist.destinationNode.getConnections()){
+				for(SimpleNode p : dist.getFinalnNode().getConnections()){
 					double diff = p.distanceToLoc(target);
 					if(!nextLevelPeers.containsKey(diff))
 						nextLevelPeers.put(diff, new ArrayList<DistanceEntry>());
-					nextLevelPeers.get(diff).add(new DistanceEntry(diff, dist.routeToNode, p, nLevel + 1));
+					nextLevelPeers.get(diff).add(new DistanceEntry(diff, dist.getNextNode(), p, nLevel + 1));
 				}
 			}
 			
@@ -545,7 +545,7 @@ public class SimpleNode {
 				if(nodes.contains(entry.get(0)))
 					continue;
 				// add a random item
-				nodes.add(entry.get(entry.get(0).routeToNode.getRandom().nextInt(entry.size())));
+				nodes.add(entry.get(entry.get(0).getNextNode().getRandom().nextInt(entry.size())));
 			}
 			
 			// get the next level
@@ -562,8 +562,8 @@ public class SimpleNode {
 			ArrayList<DistanceEntry> distances = getDistances(from, target, nLookAhead);
 			
 			while(!distances.isEmpty()){
-				if(/*distances.get(0).distance < closest && */distances.get(0).routeToNode.lastRouted != requestID){
-					next = distances.get(0).routeToNode;
+				if(/*distances.get(0).distance < closest && */distances.get(0).getNextNode().lastRouted != requestID){
+					next = distances.get(0).getNextNode();
 					break;
 				}
 				distances.remove(0);
@@ -581,8 +581,8 @@ public class SimpleNode {
 			ArrayList<DistanceEntry> distances = getDistances(from, target, nLookAhead);
 
 			while(!distances.isEmpty()){
-				if(distances.get(0).distance < closest){
-					next = distances.get(0).routeToNode;
+				if(distances.get(0).getDistance() < closest){
+					next = distances.get(0).getNextNode();
 					break;
 				}
 				distances.remove(0);
@@ -627,8 +627,8 @@ public class SimpleNode {
 		} else {
 			final RouteResult result = next.greedyRoute(target, hopsToLive, nLookAhead, backtracking, newFoldingMethod, peerSelector, foldingPolicy, chain);
 			// If the routing did not succeed and did not use all remaining hops, backtrack if enabled.
-			final int additionalHops = result.pathLength - pathLength;
-			if (backtracking && !result.success && additionalHops < hopsToLive) {
+			final int additionalHops = result.getPathLength() - pathLength;
+			if (backtracking && !result.isSuccess() && additionalHops < hopsToLive) {
 				//System.out.println("BACKTRACKING");
 				return this.greedyRoute(target, hopsToLive - additionalHops, nLookAhead, backtracking, newFoldingMethod, peerSelector, foldingPolicy, chain);
 			} else {

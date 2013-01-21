@@ -5,34 +5,97 @@ import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 /**
  * Convenience class for ranking nodes by distance.
  */
-public class DistanceEntry implements Comparable<DistanceEntry>{
-	public final double distance;
-	public final SimpleNode routeToNode, destinationNode;
-	public final int nLevel;
+public class DistanceEntry implements Comparable<DistanceEntry> {
+    /**
+     * Distance between the current node (relative) and the final node.
+     */
+    private final double distance;
+    /**
+     * The next node that would actually be routed to.
+     */
+    private final SimpleNode nextNode;
+    /**
+     * The final node that we are trying to route towards.
+     */
+    private final SimpleNode finalnNode;
+    /**
+     * The level (hops) of look ahead we are at.
+     */
+    private final int lookAheadLevel;
 
-	public DistanceEntry(double distance, SimpleNode routeToNode, SimpleNode destinationNode, int nLevel) {
-		this.distance = distance;
-		this.routeToNode = routeToNode;
-		this.destinationNode = destinationNode;
-		this.nLevel = nLevel;
-	}
+    /**
+     * Create a new distance entry.
+     * 
+     * @param distance
+     *            Distance from the relative node to the final node.
+     * @param nextNode
+     *            Node that would actually be routed to (one hop away).
+     * @param finalNode
+     *            The node that we are ultimately trying to route to.
+     * @param lookAheadLevel
+     *            Number of hops of look ahead this entry is from.
+     */
+    public DistanceEntry(final double distance, final SimpleNode nextNode,
+            final SimpleNode finalNode, final int lookAheadLevel) {
+        this.distance = distance;
+        this.nextNode = nextNode;
+        this.finalnNode = finalNode;
+        this.lookAheadLevel = lookAheadLevel;
+    }
 
-	@Override
-	public int compareTo(DistanceEntry other) {
-		return Double.compare(this.distance, other.distance);
-	}
-	
-	@Override
-	public boolean equals(Object o) {
-		if (!(o instanceof DistanceEntry)) return false;
+    /**
+     * @return the distance
+     */
+    public final double getDistance() {
+        return distance;
+    }
 
-		final DistanceEntry other = (DistanceEntry)o;
+    /**
+     * @return the nextNode
+     */
+    public final SimpleNode getNextNode() {
+        return nextNode;
+    }
 
-		return this.distance == other.distance;
-	}
-	
-	@Override
-	public String toString(){
-		return this.distance + " " + this.routeToNode.index + " " + this.destinationNode.index;
-	}
+    /**
+     * @return the finalnNode
+     */
+    public final SimpleNode getFinalnNode() {
+        return finalnNode;
+    }
+
+    /**
+     * @return the lookAheadLevel
+     */
+    public final int getLookAheadLevel() {
+        return lookAheadLevel;
+    }
+
+    @Override
+    public final int compareTo(final DistanceEntry other) {
+        return Double.compare(this.getDistance(), other.getDistance());
+    }
+
+    @Override
+    public final boolean equals(final Object o) {
+        if (!(o instanceof DistanceEntry)) {
+            return false;
+        }
+        final DistanceEntry other = (DistanceEntry) o;
+        return this.getDistance() == other.getDistance();
+    }
+
+    @Override
+    public final int hashCode() {
+        return ((Double) this.getDistance()).hashCode();
+    }
+
+    @Override
+    public final String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append(this.getDistance()).append(" ");
+        b.append(this.getNextNode().index).append(" ");
+        b.append(this.getFinalnNode().index);
+        return b.toString();
+    }
 }

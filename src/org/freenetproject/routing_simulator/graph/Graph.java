@@ -352,13 +352,13 @@ public class Graph {
 			LOGGER.info("Writing " + connectionIndexes.size()
 					+ " connections to output stream.");
 
-			output.write("digraph G {\n".getBytes());
+			output.write("digraph G {\n".getBytes("UTF-8"));
 			for (SimpleNode[] pair : connectionIndexes) {
 				output.write(("\"" + pair[0].getLocation() + " "
 						+ pair[0].index + "\" -> \"" + pair[1].getLocation()
 						+ " " + pair[1].index + "\"\n").getBytes());
 			}
-			output.write("}\n".getBytes());
+			output.write("}\n".getBytes("UTF-8"));
 
 			output.flush();
 			output.close();

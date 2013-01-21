@@ -23,11 +23,11 @@
 
 	<!-- Create the jar files within the project -->
 	<target name="local-jars">
-		<javac debug="true" srcdir="${main.src}" destdir="${main.build}" classpathref="external.jars" includeantruntime="false" />
+		<javac debug="true" srcdir="${main.src}" destdir="${main.build}" classpathref="external.jars" includeantruntime="false" deprecation="true" />
 		<copy todir="${main.build}">
 			<fileset dir="${main.src}" excludes="**/*.java" />
 		</copy>
-		<jar basedir="${main.build}" jarfile="${main.build}/${main.jar}" includes="org/" >
+		<jar basedir="${main.build}" jarfile="${main.build}/${main.jar}" includes="org/">
 			<manifest>
 				<attribute name="Main-Class" value="org.freenetproject.routing_simulator.RoutingSim" />
 			</manifest>

@@ -9,6 +9,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="lib/commons-cli-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/commons-math3-3.0.jar"/>
-	<classpathentry kind="lib" path="lib/freenet-route-prediction.jar"/>
+	<classpathentry kind="lib" path="lib/freenet-route-prediction-nodep.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

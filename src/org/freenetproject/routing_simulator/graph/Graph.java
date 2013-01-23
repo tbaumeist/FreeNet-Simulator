@@ -9,13 +9,6 @@ import org.freenetproject.routing_simulator.graph.linklength.KleinbergLinkSource
 import org.freenetproject.routing_simulator.graph.linklength.LinkLengthSource;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.freenetproject.routing_simulator.util.logging.SimLogger;
-import org.gephi.data.attributes.api.AttributeController;
-import org.gephi.data.attributes.api.AttributeModel;
-import org.gephi.graph.api.DirectedGraph;
-import org.gephi.graph.api.GraphModel;
-import org.gephi.statistics.plugin.GraphDistance;
-import org.openide.util.Lookup;
-
 import frp.gephi.GephiHelper;
 
 import java.io.ByteArrayInputStream;
@@ -24,7 +17,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringBufferInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -426,16 +418,17 @@ public class Graph {
 		int nEdges = nEdges();
 		double meanDegree = ((double) (2 * nEdges)) / nodes.size();
 		
-		// gephi stats
-		ByteArrayOutputStream dotOutput = new ByteArrayOutputStream();
-		this.writeText(dotOutput);
-		DirectedGraph graph = new GephiHelper().loadGraphFile(
-				new ByteArrayInputStream(dotOutput.toByteArray()),".dot");
-		AttributeModel attributeModel = Lookup.getDefault().lookup(
-				AttributeController.class).getModel();
-		GraphModel graphModel = graph.getGraphModel();
-		GraphDistance distance = new GraphDistance();
-		distance.execute(graphModel, attributeModel);
+//		// The Gephi stats library was too big for the benefit it added
+//		// gephi stats
+//		ByteArrayOutputStream dotOutput = new ByteArrayOutputStream();
+//		this.writeText(dotOutput);
+//		DirectedGraph graph = new GephiHelper().loadGraphFile(
+//				new ByteArrayInputStream(dotOutput.toByteArray()),".dot");
+//		AttributeModel attributeModel = Lookup.getDefault().lookup(
+//				AttributeController.class).getModel();
+//		GraphModel graphModel = graph.getGraphModel();
+//		GraphDistance distance = new GraphDistance();
+//		distance.execute(graphModel, attributeModel);
 		
 		
 		StringBuilder b = new StringBuilder();
@@ -446,8 +439,8 @@ public class Graph {
 		b.append("\nMax degree:				" + maxDegree());
 		b.append("\nMean degree:				" + meanDegree);
 		b.append("\nDegree stddev:				" + Math.sqrt(degreeVariance()));
-		b.append("\nNetwork diameter:			"+ distance.getDiameter());
-		b.append("\nAverage path length:			"+ distance.getPathLength());
+//		b.append("\nNetwork diameter:			"+ distance.getDiameter());
+//		b.append("\nAverage path length:			"+ distance.getPathLength());
 		b.append("\nMean local clustering coefficient:	"
 				+ meanLocalClusterCoeff());
 		b.append("\nGlobal clustering coefficient:		" + globalClusterCoeff());

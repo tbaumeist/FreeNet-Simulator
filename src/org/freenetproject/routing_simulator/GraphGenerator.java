@@ -9,6 +9,10 @@ public enum GraphGenerator {
      */
     LOAD,
     /**
+     * Load DOT formatted graph file.
+     */
+    LOAD_DOT,
+    /**
      * The network will be generated with directed edges according to section
      * 2.2.1 of Oskar Sandberg's "Searching in a Small World." Shortcut edges
      * are added conforming to the link length source. In an extension of the

@@ -204,6 +204,8 @@ public final class RoutingSim {
 
         if (arguments.graphGenerator == GraphGenerator.LOAD) {
             g = Graph.read(arguments.graphInput, rand);
+        } else if ( arguments.graphGenerator == GraphGenerator.LOAD_DOT) {
+        	g = Graph.readDot( arguments.graphInputText, rand);
         } else {
             final ArrayList<SimpleNode> nodes = Graph.generateNodes(
                     arguments.networkSize, rand, arguments.fastGeneration,
@@ -377,7 +379,7 @@ public final class RoutingSim {
             final RouteResult result = origin.route(destination, maxHTL,
                     routingPolicy, foldingPolicy, nLookAhead, newFoldingMethod);
 
-            experiment.record(result.isSuccess(), result.getPathLength());
+            experiment.record(result.isSuccess(), result.getPathLength(), result.getTravelLength(maxHTL));
 
             /*
              * Bootstrap all nodes which became disconnected during path

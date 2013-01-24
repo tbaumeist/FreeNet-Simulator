@@ -5,7 +5,8 @@ import org.freenetproject.routing_simulator.util.ArrayUtil;
 public class RoutingExp {
 	private int successes = 0, disconnectedFolding = 0,
 			disconnectedBootstrap = 0, totalSuccessPathLength = 0,
-			nRequests = 0, foldingOperations = 0, maxHTL = 0;
+			totalSuccessTravelPathLength = 0, nRequests = 0,
+			foldingOperations = 0, maxHTL = 0;
 	private int[] pathLengthDist;
 
 	public RoutingExp(int maxHTL, int nRequests) {
@@ -14,11 +15,13 @@ public class RoutingExp {
 		this.nRequests = nRequests;
 	}
 
-	public void record(boolean successful, int pathLength) {
+	public void record(boolean successful, int pathLength,
+			int traveledPathLength) {
 		if (successful) {
 			this.successes++;
 			this.pathLengthDist[pathLength]++;
 			this.totalSuccessPathLength += pathLength;
+			this.totalSuccessTravelPathLength += traveledPathLength;
 		}
 	}
 
@@ -29,8 +32,8 @@ public class RoutingExp {
 	public void disconnectBootStrap() {
 		this.disconnectedBootstrap++;
 	}
-	
-	public void foldingOperations(int operations){
+
+	public void foldingOperations(int operations) {
 		this.foldingOperations += operations;
 	}
 
@@ -63,6 +66,9 @@ public class RoutingExp {
 		b.append("\n");
 		b.append("Mean successful path length :     \t").append(
 				(double) totalSuccessPathLength / successes);
+		b.append("\n");
+		b.append("Mean successful traveled path length (back-tracking):     \t").append(
+				(double) totalSuccessTravelPathLength / successes);
 		b.append("\n");
 		b.append("\n");
 

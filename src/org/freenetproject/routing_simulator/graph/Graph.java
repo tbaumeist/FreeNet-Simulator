@@ -9,13 +9,18 @@ import org.freenetproject.routing_simulator.graph.linklength.KleinbergLinkSource
 import org.freenetproject.routing_simulator.graph.linklength.LinkLengthSource;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.freenetproject.routing_simulator.util.logging.SimLogger;
+
+import frp.dataFileReaders.TopologyFileReaderManager;
 import frp.gephi.GephiHelper;
+import frp.routing.Node;
+import frp.routing.Topology;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -358,6 +363,61 @@ public class Graph {
 			throw new Exception("Could not write DOT graph to output stream:");
 		}
 	}
+	
+	/**
+	 * Load graph from DOT file.
+	 * 
+	 * @param input
+	 *            DOT file stream
+	 * @param random
+	 *            Random generator
+	 * @return loaded graph
+	 * @throws Exception
+	 *             Error loading the graph
+	 */
+	public static Graph readDot(InputStream input, RandomGenerator random)
+			throws Exception {
+		TopologyFileReaderManager topReader = new TopologyFileReaderManager();
+		Topology top = topReader.readFromFile(input);
+		if( top == null)
+			throw new Exception("Unable to read the input graph file.");
+		
+		// Number of nodes.
+		final List<Node> topNodes = top.getAllNodes();
+		final int networkSize = topNodes.size();
+		final Graph graph = new Graph(new ArrayList<SimpleNode>(networkSize));
+		
+		int largestDegree = 0;
+		for( Node n : topNodes) {
+			int nodeDegree = n.getDirectNeighbors().size();
+			if( nodeDegree > largestDegree ) {
+				largestDegree = nodeDegree;
+			}
+		}
+
+		// Nodes.
+		for (int i = 0; i < networkSize; i++) {
+			Node n = topNodes.get(i);
+			graph.nodes.add(new SimpleNode(n.getLocation(), random, largestDegree, i));
+		}
+		
+		// Connections
+		for (int i = 0; i < networkSize; i++) {
+			
+		}
+
+//		final int writtenConnections = input.readInt();
+//		LOGGER.info("Reading " + writtenConnections + " connections.");
+//		// Each connection consists of two indexes in a pair.
+//		for (int i = 0; i < writtenConnections; i++) {
+//			final int from = input.readInt();
+//			final int to = input.readInt();
+//			// System.out.println(from + " " + to);
+//			graph.nodes.get(from).connectOutgoing(graph.nodes.get(to));
+//		}
+
+		return graph;
+	}
 
 	/**
 	 * Constructs the graph from a file.
@@ -383,7 +443,7 @@ public class Graph {
 			}
 
 			final int writtenConnections = input.readInt();
-			System.out.println("Reading " + writtenConnections
+			LOGGER.info("Reading " + writtenConnections
 					+ " connections.");
 			// Each connection consists of two indexes in a pair.
 			for (int i = 0; i < writtenConnections; i++) {

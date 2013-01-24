@@ -6,19 +6,16 @@ import org.freenetproject.routing_simulator.RouteResult;
 import org.freenetproject.routing_simulator.RoutingPolicy;
 import org.freenetproject.routing_simulator.graph.Location;
 import org.freenetproject.routing_simulator.graph.folding.PathFoldingResult;
-import org.freenetproject.routing_simulator.util.DistanceEntry;
+import org.freenetproject.routing_simulator.graph.node.peer.*;
 import org.freenetproject.routing_simulator.util.lru.LRUQueue;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Random;
 
 /**
  * A simple node model.  Has a location and a set of connections.
@@ -116,6 +113,20 @@ public class SimpleNode {
 	
 	public RandomGenerator getRandom(){
 		return this.rand;
+	}
+
+	/**
+	 * @return the lastRouted
+	 */
+	public long getLastRouted() {
+		return lastRouted;
+	}
+
+	/**
+	 * @param lastRouted the lastRouted to set
+	 */
+	private void setLastRouted(long lastRouted) {
+		this.lastRouted = lastRouted;
 	}
 
 	/**
@@ -496,99 +507,10 @@ public class SimpleNode {
 		requestID++;
 		// TODO: Duplicate argument value determination between these methods: chain and target.
 		switch (routingPolicy) {
-			case GREEDY: return greedyRoute(target.getLocation(), hopsToLive, nLookAhead, false, newFoldingMethod, new greedy(), foldingPolicy, new ArrayList<SimpleNode>());
-			case LOOP_DETECTION: return greedyRoute(target.getLocation(), hopsToLive, nLookAhead, false, newFoldingMethod, new loopDetection(), foldingPolicy, new ArrayList<SimpleNode>());
-			case BACKTRACKING: return greedyRoute(target.getLocation(), hopsToLive, nLookAhead, true, newFoldingMethod, new loopDetection(), foldingPolicy, new ArrayList<SimpleNode>());
+			case GREEDY: return greedyRoute(target.getLocation(), hopsToLive, nLookAhead, false, newFoldingMethod, new Greedy(), foldingPolicy, new ArrayList<SimpleNode>());
+			case LOOP_DETECTION: return greedyRoute(target.getLocation(), hopsToLive, nLookAhead, false, newFoldingMethod, new LoopDetection(requestID), foldingPolicy, new ArrayList<SimpleNode>());
+			case BACKTRACKING: return greedyRoute(target.getLocation(), hopsToLive, nLookAhead, true, newFoldingMethod, new LoopDetection(requestID), foldingPolicy, new ArrayList<SimpleNode>());
 			default: throw new IllegalStateException("Routing for policy " + routingPolicy.name() + " not implemented.");
-		}
-	}
-
-	private static abstract class PeerSelector {
-		public abstract SimpleNode selectPeer(final double target, final SimpleNode from, final ArrayList<SimpleNode> chain, final int nLookAhead);
-		
-		protected ArrayList<DistanceEntry> getDistances(SimpleNode node, final double target, final int nLookAhead){
-			// TODO: If look ahead is greater than one it drastically decreases performance
-			ArrayList<DistanceEntry> peers = new ArrayList<DistanceEntry>();
-			
-			for (SimpleNode peer : node.getConnections()) {
-				peers.add(new DistanceEntry(peer.distanceToLoc(target), peer, peer, 1));
-			}
-			
-			peers = getDistances(peers, target, nLookAhead, 1);
-			
-			Collections.sort(peers);
-			return peers;
-		}
-		
-		private ArrayList<DistanceEntry> getDistances(ArrayList<DistanceEntry> nodes, final double target, final int nLookAhead, int nLevel){
-			if(nLookAhead <= nLevel)
-				return nodes;
-			
-			// Get all the next level nodes
-			Hashtable<Double, List<DistanceEntry>> nextLevelPeers = new Hashtable<Double, List<DistanceEntry>>();
-			for (DistanceEntry dist : nodes) {
-				if(dist.getLookAheadLevel() != nLevel)
-					continue;
-				for(SimpleNode p : dist.getFinalnNode().getConnections()){
-					double diff = p.distanceToLoc(target);
-					if(!nextLevelPeers.containsKey(diff))
-						nextLevelPeers.put(diff, new ArrayList<DistanceEntry>());
-					nextLevelPeers.get(diff).add(new DistanceEntry(diff, dist.getNextNode(), p, nLevel + 1));
-				}
-			}
-			
-			// add the next level entries to the list
-			// remove duplicates by randomly selecting one of the entries
-			for(List<DistanceEntry> entry : nextLevelPeers.values()){
-				// does the list already have that location, if so it is closer because
-				// it will have a smaller level
-				if(nodes.contains(entry.get(0)))
-					continue;
-				// add a random item
-				nodes.add(entry.get(entry.get(0).getNextNode().getRandom().nextInt(entry.size())));
-			}
-			
-			// get the next level
-			nodes = getDistances(nodes, target, nLookAhead, nLevel + 1);
-			
-			return nodes;
-		}
-	}
-
-	private static class loopDetection extends PeerSelector {
-		public SimpleNode selectPeer(final double target, final SimpleNode from, final ArrayList<SimpleNode> chain, final int nLookAhead) {
-			SimpleNode next = from;
-			//final double closest = from.distanceToLoc(target);
-			ArrayList<DistanceEntry> distances = getDistances(from, target, nLookAhead);
-			
-			while(!distances.isEmpty()){
-				if(/*distances.get(0).distance < closest && */distances.get(0).getNextNode().lastRouted != requestID){
-					next = distances.get(0).getNextNode();
-					break;
-				}
-				distances.remove(0);
-			}
-
-			return next;
-		}
-	}
-
-	private static class greedy extends PeerSelector {
-		@Override
-		public SimpleNode selectPeer(double target, SimpleNode from, ArrayList<SimpleNode> chain, final int nLookAhead) {		
-			SimpleNode next = from;
-			final double closest = from.distanceToLoc(target);
-			ArrayList<DistanceEntry> distances = getDistances(from, target, nLookAhead);
-
-			while(!distances.isEmpty()){
-				if(distances.get(0).getDistance() < closest){
-					next = distances.get(0).getNextNode();
-					break;
-				}
-				distances.remove(0);
-			}
-			
-			return next;
 		}
 	}
 
@@ -607,23 +529,23 @@ public class SimpleNode {
 		 */
 		if (this.getLocation() == target) {
 			chain.add(this);
-			return new RouteResult(true, success(chain, foldingPolicy, newFoldingMethod), chain.size());
+			return new RouteResult(true, success(chain, foldingPolicy, newFoldingMethod), chain.size(), hopsToLive);
 		}
 
 		// Find node next node to route to.
 		final SimpleNode next = peerSelector.selectPeer(target, this, chain, nLookAhead);
 
 		// Nowhere is closer or available, and this node is not the target one.
-		if (next == this) return new RouteResult(false, chain.size());
+		if (next == this) return new RouteResult(chain.size());
 
 		//TODO: Probabilistic decrement
 		hopsToLive--;
 
 		chain.add(this);
 		final int pathLength = chain.size();
-		if (backtracking) lastRouted = requestID;
+		if (backtracking) setLastRouted(requestID);
 		if (hopsToLive == 0) {
-			return new RouteResult(false, chain.size());
+			return new RouteResult(chain.size());
 		} else {
 			final RouteResult result = next.greedyRoute(target, hopsToLive, nLookAhead, backtracking, newFoldingMethod, peerSelector, foldingPolicy, chain);
 			// If the routing did not succeed and did not use all remaining hops, backtrack if enabled.

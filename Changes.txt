@@ -6,6 +6,9 @@ In order to improve accuracy and meet our project requirements we made several c
 -Renamed several outputs for clarity
 -Added logging with a level switch
 -Save graph files to a DOT file format
+-Load graph file from GML file format
+-Load graph file from DOT file format
 -Errors
 	-Fixed an issue where a node was adding itself to the LRU queue.
 	-Fixed an issue with path folding working incorrectly (folding wrong nodes)
+	-Fixed an issue with Back Tracking not working during routing

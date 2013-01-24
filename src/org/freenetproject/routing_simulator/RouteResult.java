@@ -23,7 +23,7 @@ public class RouteResult {
 	/**
 	 * The the total path length taken including any back tracking.
 	 */
-	private final int hopsToLive;
+	private final int traveledLength;
 
 	/**
 	 * Construct a new routing result for a failed routing attempt.
@@ -49,11 +49,11 @@ public class RouteResult {
 	 */
 	public RouteResult(final boolean success,
 			final PathFoldingResult foldingResult, final int pathLength,
-			final int htl) {
+			final int traveledLength) {
 		this.success = success;
 		this.foldingResult = foldingResult;
 		this.pathLength = pathLength;
-		this.hopsToLive = htl;
+		this.traveledLength = traveledLength;
 	}
 
 	/**
@@ -80,7 +80,7 @@ public class RouteResult {
 	/**
 	 * @return the traveled path length
 	 */
-	public final int getTravelLength(final int maxHTL) {
-		return maxHTL - this.hopsToLive;
+	public final int getTravelLength() {
+		return this.traveledLength;
 	}
 }

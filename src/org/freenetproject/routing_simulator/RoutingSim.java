@@ -48,12 +48,6 @@ public final class RoutingSim {
     }
 
     /**
-     * Private constructor.
-     */
-    private RoutingSim() {
-    }
-
-    /**
      * Start the simulator.
      * 
      * @param arguments
@@ -62,7 +56,7 @@ public final class RoutingSim {
      *             Any errors while running the simulator will throw an
      *             exception.
      */
-    private void run(final Arguments arguments) throws Exception {
+    public void run(final Arguments arguments) throws Exception {
         ByteArrayOutputStream memory;
 
         SimLogger.setup();
@@ -128,7 +122,7 @@ public final class RoutingSim {
         }
 
         if (arguments.graphOutputText != null) {
-            g.writeText(arguments.graphOutputText);
+            g.writeDot(arguments.graphOutputText);
         }
 
         LOGGER.info("Route/Probe time taken (ms): "
@@ -204,8 +198,10 @@ public final class RoutingSim {
 
         if (arguments.graphGenerator == GraphGenerator.LOAD) {
             g = Graph.read(arguments.graphInput, rand);
-        } else if ( arguments.graphGenerator == GraphGenerator.LOAD_DOT) {
-        	g = Graph.readDot( arguments.graphInputText, rand);
+        } else if (arguments.graphGenerator == GraphGenerator.LOAD_DOT) {
+            g = Graph.readDot(arguments.graphInput, rand);
+        } else if (arguments.graphGenerator == GraphGenerator.LOAD_GML) {
+            g = Graph.readGml(arguments.graphInput, rand);
         } else {
             final ArrayList<SimpleNode> nodes = Graph.generateNodes(
                     arguments.networkSize, rand, arguments.fastGeneration,
@@ -280,8 +276,7 @@ public final class RoutingSim {
         for (int i = 0; i < nTrials; i++) {
             int[] trialOccurrences = new int[graph.size()];
             for (int walk = 0; walk < nProbes; walk++) {
-                trialOccurrences[graph
-                          .getNode(rand.nextInt(graph.size())).index]++;
+                trialOccurrences[graph.getNode(rand.nextInt(graph.size())).index]++;
             }
             Arrays.sort(trialOccurrences);
             assert baselineOccurrences.length == trialOccurrences.length;
@@ -379,7 +374,8 @@ public final class RoutingSim {
             final RouteResult result = origin.route(destination, maxHTL,
                     routingPolicy, foldingPolicy, nLookAhead, newFoldingMethod);
 
-            experiment.record(result.isSuccess(), result.getPathLength(), result.getTravelLength(maxHTL));
+            experiment.record(result.isSuccess(), result.getPathLength(),
+                    result.getTravelLength());
 
             /*
              * Bootstrap all nodes which became disconnected during path
@@ -388,8 +384,8 @@ public final class RoutingSim {
              * the total connection count remains the same; additional nodes may
              * become disconnected in the process.
              */
-            Queue<SimpleNode> disconnected = new LinkedList<SimpleNode>(
-                    result.getFoldingResult().getDisconnected());
+            Queue<SimpleNode> disconnected = new LinkedList<SimpleNode>(result
+                    .getFoldingResult().getDisconnected());
             experiment.disconnectedFolding(disconnected.size());
             experiment.foldingOperations(result.getFoldingResult()
                     .getFoldingOperations());

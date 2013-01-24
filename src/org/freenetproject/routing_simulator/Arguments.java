@@ -706,7 +706,7 @@ public final class Arguments {
         try {
             degreeInput = readableFile(OPT_DEGREE_CONFORMING.getLongOpt(), cmd);
             linkInput = readableFile(OPT_LINK_CONFORMING.getLongOpt(), cmd);
-            if (cmd.hasOption(OPT_GRAPH_LOAD_DOT.getLongOpt())) {
+            if (cmd.hasOption(OPT_GRAPH_LOAD.getLongOpt())) {
                 graphInput = readableFile(OPT_GRAPH_LOAD.getLongOpt(), cmd);
             } else if (cmd.hasOption(OPT_GRAPH_LOAD_DOT.getLongOpt())) {
                 graphInput = readableFile(OPT_GRAPH_LOAD_DOT.getLongOpt(), cmd);

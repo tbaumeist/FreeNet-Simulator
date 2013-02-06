@@ -20,12 +20,11 @@ public class Test_Routing {
     @Test
     public void largeRouting() throws Exception {
         File tmp = File.createTempFile("Freenet", "test");
-        String tmpPath = tmp.getParent() + File.separator + "freenet_test"
-                + File.separator;
+        String tmpPath = tmp.getParent() + File.separator;
         tmp.delete();
         System.out.println("Writing files to " + tmpPath);
         String[] args = new String[] { "--link-ideal", "--degree-fixed", "5",
-                "--graph-size", "3000", "--route", "144000",
+                "--graph-size", "2000", "--route", "144000",
                 "--route-hops", "18",  "--route-bootstrap",
                 "--route-output", tmpPath + "route.dat", "--graph-save",
                 tmpPath + "graph.g" };

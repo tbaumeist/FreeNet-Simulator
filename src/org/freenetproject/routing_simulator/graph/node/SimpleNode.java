@@ -13,6 +13,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -70,10 +71,14 @@ public class SimpleNode {
 
         if (this.degree() != other.degree())
             return false;
+        
+        HashSet<Integer> peers = new HashSet<Integer>();
+        for( SimpleNode n : other.getConnections()) {
+        	peers.add(n.index);
+        }
 
         for (int i = 0; i < this.degree(); i++) {
-            if (this.getConnections().get(i).index != other.getConnections()
-                    .get(i).index)
+            if (!peers.contains( this.getConnections().get(i).index))
                 return false;
         }
 

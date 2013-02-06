@@ -9,6 +9,12 @@ import org.freenetproject.routing_simulator.graph.linklength.KleinbergLinkSource
 import org.freenetproject.routing_simulator.graph.linklength.LinkLengthSource;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.freenetproject.routing_simulator.util.logging.SimLogger;
+import org.gephi.data.attributes.api.AttributeController;
+import org.gephi.data.attributes.api.AttributeModel;
+import org.gephi.graph.api.DirectedGraph;
+import org.gephi.graph.api.GraphModel;
+import org.gephi.statistics.plugin.GraphDistance;
+import org.openide.util.Lookup;
 
 import frp.dataFileReaders.TopologyFileReaderDOT;
 import frp.dataFileReaders.TopologyFileReaderGML;
@@ -24,6 +30,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -45,6 +52,9 @@ public class Graph {
 	 * desired degree
 	 */
 	private static final double rejectProbability = 0.01;
+	
+	private double diameter = 0;
+	private double avgPathLength = 0;
 
 	/**
 	 * Private constructor; call one of the generator functions instead.
@@ -509,18 +519,6 @@ public class Graph {
 		int nEdges = nEdges();
 		double meanDegree = ((double) (2 * nEdges)) / nodes.size();
 
-		// // The Gephi stats library was too big for the benefit it added
-		// // gephi stats
-		// ByteArrayOutputStream dotOutput = new ByteArrayOutputStream();
-		// this.writeText(dotOutput);
-		// DirectedGraph graph = new GephiHelper().loadGraphFile(
-		// new ByteArrayInputStream(dotOutput.toByteArray()),".dot");
-		// AttributeModel attributeModel = Lookup.getDefault().lookup(
-		// AttributeController.class).getModel();
-		// GraphModel graphModel = graph.getGraphModel();
-		// GraphDistance distance = new GraphDistance();
-		// distance.execute(graphModel, attributeModel);
-
 		StringBuilder b = new StringBuilder();
 		b.append("Graph stats:");
 		b.append("\nSize:					" + size());
@@ -529,8 +527,8 @@ public class Graph {
 		b.append("\nMax degree:				" + maxDegree());
 		b.append("\nMean degree:				" + meanDegree);
 		b.append("\nDegree stddev:				" + Math.sqrt(degreeVariance()));
-		// b.append("\nNetwork diameter:			"+ distance.getDiameter());
-		// b.append("\nAverage path length:			"+ distance.getPathLength());
+		b.append("\nNetwork diameter:			"+ this.getNetworkDiameter());
+		b.append("\nAverage path length:			"+ this.getAveragePathLength());
 		b.append("\nMean local clustering coefficient:	"
 				+ meanLocalClusterCoeff());
 		b.append("\nGlobal clustering coefficient:		" + globalClusterCoeff());
@@ -545,12 +543,14 @@ public class Graph {
 		b.append("maxDegree ");
 		b.append("meanDegree ");
 		b.append("degreeStddev ");
+		b.append("networkDiameter ");
+		b.append("averagePathLength ");
 		b.append("meanLocalClusteringCoefficient ");
 		b.append("globalClusteringCoefficient ");
 		return b.toString();
 	}
 
-	public String toStringValues() {
+	public String toStringValues() throws Exception {
 		double meanDegree = ((double) (2 * this.nEdges())) / nodes.size();
 
 		StringBuilder b = new StringBuilder();
@@ -560,6 +560,8 @@ public class Graph {
 		b.append(this.maxDegree()).append(' ');
 		b.append(meanDegree).append(' ');
 		b.append(Math.sqrt(degreeVariance())).append(' ');
+		b.append(this.getNetworkDiameter()).append(' ');
+		b.append(this.getAveragePathLength()).append(' ');
 		b.append(this.meanLocalClusterCoeff()).append(' ');
 		b.append(this.globalClusterCoeff()).append(' ');
 
@@ -595,6 +597,44 @@ public class Graph {
 	 */
 	public int size() {
 		return nodes.size();
+	}
+
+	public void updateGraphStats() throws Exception {
+		/*
+		 * Hack to hide system.out prints from Gephi library
+		 */
+		PrintStream original = System.out;
+		System.setOut(new PrintStream(new OutputStream() {
+			public void write(int b) {
+				// DO NOTHING
+			}
+		}));
+
+		// Gephi stats
+		ByteArrayOutputStream dotOutput = new ByteArrayOutputStream();
+		this.writeDot(dotOutput);
+		DirectedGraph graph = new GephiHelper().loadGraphFile(
+				new ByteArrayInputStream(dotOutput.toByteArray()), ".dot");
+		AttributeModel attributeModel = Lookup.getDefault()
+				.lookup(AttributeController.class).getModel();
+		GraphModel graphModel = graph.getGraphModel();
+		GraphDistance distance = new GraphDistance();
+		distance.execute(graphModel, attributeModel);
+		this.diameter = distance.getDiameter();
+		this.avgPathLength = distance.getPathLength();
+		
+		/*
+		 * Restore system.out
+		 */
+		System.setOut(original);
+	}
+	
+	public double getNetworkDiameter() throws Exception {
+		return this.diameter;
+	}
+	
+	public double getAveragePathLength() throws Exception {
+		return this.avgPathLength;
 	}
 
 	/**

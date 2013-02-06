@@ -36,6 +36,24 @@ public class RoutingExp {
 	public void foldingOperations(int operations) {
 		this.foldingOperations += operations;
 	}
+	
+	public String toStringHeaders(){
+		StringBuilder b = new StringBuilder();
+		b.append("routingSuccessRate ");
+		b.append("meanSuccessfulDiscoveryRoutingPathLength ");
+		b.append("meanSuccessfulRoutingPathLength ");
+		b.append("successfulRoutingPathLengthDistribution ");
+		return b.toString();
+	}
+	
+	public String toStringValues(){
+		StringBuilder b = new StringBuilder();
+		b.append((double) successes / nRequests * 100).append(' ');
+		b.append((double) totalSuccessTravelPathLength / successes).append(' ');
+		b.append((double) totalSuccessPathLength / successes).append(' ');
+		b.append(ArrayUtil.stringArrayPair(this.pathLengthDist)).append(' ');
+		return b.toString();
+	}
 
 	@Override
 	public String toString() {
@@ -64,16 +82,16 @@ public class RoutingExp {
 		b.append("\n* Note failed requests are not included in the stats below *\n\n");
 		b.append("Maximum path length :             \t").append(this.maxHTL);
 		b.append("\n");
-		b.append("Mean successful path length :     \t").append(
-				(double) totalSuccessPathLength / successes);
-		b.append("\n");
-		b.append("Mean successful traveled path length (back-tracking):     \t").append(
+		b.append("Mean successful discovery routing path length (back-tracking):    \t").append(
 				(double) totalSuccessTravelPathLength / successes);
+		b.append("\n");
+		b.append("Mean successful routing path length :    \t").append(
+				(double) totalSuccessPathLength / successes);
 		b.append("\n");
 		b.append("\n");
 
-		b.append("Successful Request Path Length Distribution\nLength Count\n");
-		b.append(ArrayUtil.stringArray(this.pathLengthDist));
+		b.append("Successful Routing Path Length Distribution\nLength Count\n");
+		b.append(ArrayUtil.stringArrayPair(this.pathLengthDist));
 
 		return b.toString();
 	}

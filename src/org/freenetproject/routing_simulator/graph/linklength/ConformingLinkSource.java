@@ -1,6 +1,7 @@
 package org.freenetproject.routing_simulator.graph.linklength;
 
 import org.apache.commons.math3.random.RandomGenerator;
+import org.freenetproject.routing_simulator.RoutingSim;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 
 import java.io.BufferedReader;
@@ -8,9 +9,11 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 public class ConformingLinkSource extends LinkLengthSource {
-
+	private static final Logger LOGGER = Logger
+			.getLogger(ConformingLinkSource.class.getName());
 	private final ArrayList<Double> lengths;
 
 	/**
@@ -30,7 +33,7 @@ public class ConformingLinkSource extends LinkLengthSource {
 				lengths.add(Double.valueOf(line.split(" ")[0]));
 			}
 		} catch (IOException e) {
-			System.out.println(e);
+			LOGGER.severe(e.toString());
 			System.exit(2);
 		}
 	}

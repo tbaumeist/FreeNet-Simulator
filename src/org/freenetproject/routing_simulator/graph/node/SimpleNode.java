@@ -680,7 +680,6 @@ public class SimpleNode {
             final int additionalHops = (result.getTravelLength() - 1) - pathLength;
             if (backtracking && !result.isSuccess()
                     && additionalHops < hopsToLive) {
-                // System.out.println("BACKTRACKING");
                 
                 // remove this from the return routing list
                 returnChain.remove(this);
@@ -856,7 +855,6 @@ public class SimpleNode {
         if (hops < 0)
             throw new IllegalArgumentException("Must have positive hops.");
         ArrayList<SimpleNode> list = new ArrayList<SimpleNode>();
-        // System.out.println(hops + " HTL: At " + this.index);
         list.add(this);
         if (hops == 0)
             return list;

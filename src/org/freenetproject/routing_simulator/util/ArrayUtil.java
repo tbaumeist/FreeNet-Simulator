@@ -34,6 +34,24 @@ public final class ArrayUtil {
 		}
 		return s.toString();
 	}
+	
+	/**
+	 * To String an array's contents.
+	 * 
+	 * @param array
+	 *            The array to convert to a string.
+	 * @return String representations of the array.
+	 */
+	public static String stringArrayPair(final int[] array) {
+		StringBuilder s = new StringBuilder();
+		for (int i = 0; i < array.length; i++) {
+			if(array[i] == 0){
+				continue;
+			}
+			s.append(i).append(':').append(array[i]).append(',');
+		}
+		return s.toString();
+	}
 
 	/**
 	 * Write an array's contents to a file.

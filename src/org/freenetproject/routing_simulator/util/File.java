@@ -1,18 +1,24 @@
 package org.freenetproject.routing_simulator.util;
 
 import org.apache.commons.cli.CommandLine;
+import org.freenetproject.routing_simulator.RoutingSim;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.logging.Logger;
 
 /**
  * Convenience file methods.
  */
 public final class File {
-
+	/**
+	 * Message logger
+	 */
+	private static final Logger LOGGER = Logger.getLogger(File.class
+            .getName());
     /**
      * Private constructor.
      */
@@ -33,20 +39,20 @@ public final class File {
         final java.io.File file = new java.io.File(path);
         if (!file.exists()) {
             if (!file.mkdirs()) {
-                System.out.println("Unable to create the output directory \""
+            	LOGGER.severe("Unable to create the output directory \""
                         + file.getAbsolutePath() + "\".");
                 return null;
             } else {
-                System.out.println("The output directory \""
+            	LOGGER.warning("The output directory \""
                         + file.getAbsolutePath()
                         + "\" did not exist, so it was created.");
             }
         } else if (!file.isDirectory()) {
-            System.out.println("The output path \"" + file.getAbsolutePath()
+            LOGGER.severe("The output path \"" + file.getAbsolutePath()
                     + "\" is not a directory as expected.");
             return null;
         } else if (!file.canWrite()) {
-            System.out.println("No write access to the output directory \""
+        	LOGGER.severe("No write access to the output directory \""
                     + file.getAbsolutePath() + "\".");
             return null;
         }
@@ -70,7 +76,7 @@ public final class File {
         try {
             return new DataInputStream(new FileInputStream(file));
         } catch (FileNotFoundException e) {
-            System.out.println("Cannot read \"" + file.getAbsolutePath()
+        	LOGGER.severe("Cannot read \"" + file.getAbsolutePath()
                     + "\" as a file.");
             throw e;
         }
@@ -95,9 +101,8 @@ public final class File {
         try {
             return new DataOutputStream(new FileOutputStream(file));
         } catch (FileNotFoundException e) {
-            System.out.println("Unable to open \"" + file.getAbsolutePath()
+        	LOGGER.severe("Unable to open \"" + file.getAbsolutePath()
                     + "\" for output:");
-            e.printStackTrace();
             throw e;
         }
     }

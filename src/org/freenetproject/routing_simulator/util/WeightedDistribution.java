@@ -7,11 +7,17 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 /**
  * Selects from a weighted distribution.
  */
 public class WeightedDistribution {
+	/**
+	 * Message logger
+	 */
+	private static final Logger LOGGER = Logger
+			.getLogger(WeightedDistribution.class.getName());
 
 	private class Event {
 		public final int value, occurrences;
@@ -48,7 +54,7 @@ public class WeightedDistribution {
 
 			for (Event event : events) tentativeTotal += event.occurrences;
 		} catch (IOException e) {
-			System.out.println(e);
+			LOGGER.severe(e.toString());
 			//TODO: Should these be thrown upwards or what?
 			System.exit(2);
 		}

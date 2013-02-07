@@ -51,10 +51,10 @@ public class Graph {
 	 * Probability of stopping an attempt to connect a node to its maximum
 	 * desired degree
 	 */
-	private static final double rejectProbability = 0.01;
+	private static final double rejectProbability = 0.05;
 	
-	private double diameter = 0;
-	private double avgPathLength = 0;
+	private double diameter = -1;
+	private double avgPathLength = -1;
 
 	/**
 	 * Private constructor; call one of the generator functions instead.

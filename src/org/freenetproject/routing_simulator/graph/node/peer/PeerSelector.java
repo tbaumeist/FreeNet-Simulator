@@ -12,8 +12,12 @@ public abstract class PeerSelector {
 	public abstract SimpleNode selectPeer(final double target, final SimpleNode from, final ArrayList<SimpleNode> chain, final int nLookAhead);
 	
 	protected ArrayList<DistanceEntry> getDistances(SimpleNode node, final double target, final int nLookAhead){
-		// TODO: If look ahead is greater than one it drastically decreases performance
 		ArrayList<DistanceEntry> peers = new ArrayList<DistanceEntry>();
+		if( node.getRoutingCache(nLookAhead) != null) {
+			peers.addAll(node.getRoutingCache(nLookAhead));
+			updateDistances(peers, target);
+			return peers;
+		}
 		
 		for (SimpleNode peer : node.getConnections()) {
 			peers.add(new DistanceEntry(peer.distanceToLoc(target), peer, peer, 1));
@@ -22,7 +26,15 @@ public abstract class PeerSelector {
 		peers = getDistances(peers, target, nLookAhead, 1);
 		
 		Collections.sort(peers);
+		node.setRoutingCache(peers, nLookAhead);
 		return peers;
+	}
+	
+	private void updateDistances(ArrayList<DistanceEntry> nodes, double target ) {
+		for( DistanceEntry e : nodes ) {
+			e.updateDistance(target);
+		}
+		Collections.sort(nodes);
 	}
 	
 	private ArrayList<DistanceEntry> getDistances(ArrayList<DistanceEntry> nodes, final double target, final int nLookAhead, int nLevel){
@@ -30,15 +42,15 @@ public abstract class PeerSelector {
 			return nodes;
 		
 		// Get all the next level nodes
-		Hashtable<Double, List<DistanceEntry>> nextLevelPeers = new Hashtable<Double, List<DistanceEntry>>();
+		Hashtable<SimpleNode, List<DistanceEntry>> nextLevelPeers = new Hashtable<SimpleNode, List<DistanceEntry>>();
 		for (DistanceEntry dist : nodes) {
 			if(dist.getLookAheadLevel() != nLevel)
 				continue;
-			for(SimpleNode p : dist.getFinalnNode().getConnections()){
+			for(SimpleNode p : dist.getFinalNode().getConnections()){
+				if(!nextLevelPeers.containsKey(p))
+					nextLevelPeers.put(p, new ArrayList<DistanceEntry>());
 				double diff = p.distanceToLoc(target);
-				if(!nextLevelPeers.containsKey(diff))
-					nextLevelPeers.put(diff, new ArrayList<DistanceEntry>());
-				nextLevelPeers.get(diff).add(new DistanceEntry(diff, dist.getNextNode(), p, nLevel + 1));
+				nextLevelPeers.get(p).add(new DistanceEntry(diff, dist.getNextNode(), p, nLevel + 1));
 			}
 		}
 		

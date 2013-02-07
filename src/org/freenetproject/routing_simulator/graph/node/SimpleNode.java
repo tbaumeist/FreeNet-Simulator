@@ -4,9 +4,11 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.freenetproject.routing_simulator.FoldingPolicy;
 import org.freenetproject.routing_simulator.RouteResult;
 import org.freenetproject.routing_simulator.RoutingPolicy;
+import org.freenetproject.routing_simulator.RoutingSim;
 import org.freenetproject.routing_simulator.graph.Location;
 import org.freenetproject.routing_simulator.graph.folding.PathFoldingResult;
 import org.freenetproject.routing_simulator.graph.node.peer.*;
+import org.freenetproject.routing_simulator.util.DistanceEntry;
 import org.freenetproject.routing_simulator.util.lru.LRUQueue;
 
 import java.io.DataInputStream;
@@ -26,6 +28,11 @@ public class SimpleNode {
     private final ArrayList<SimpleNode> connections;
     private final int desiredDegree;
     private int successfulRequestCount = 0;
+    /*
+     * Cache of the peer routing distances. Cleared when node connections change.
+     */
+    private ArrayList<DistanceEntry> routingCache = null;
+    private int routingCacheLookAhead = 0;
 
     private final RandomGenerator rand;
 
@@ -46,6 +53,34 @@ public class SimpleNode {
     public void write(DataOutputStream out) throws IOException {
         out.writeDouble(location);
         out.writeInt(desiredDegree);
+    }
+    
+    public void setRoutingCache(ArrayList<DistanceEntry> distances, int nLookAhead) {
+    	if( this.routingCache != null && this.routingCacheLookAhead == nLookAhead) {
+    		return;
+    	}
+    	this.routingCache = new ArrayList<DistanceEntry>();
+    	this.routingCache.addAll(distances);
+    	this.routingCacheLookAhead = nLookAhead;
+    }
+    
+    public ArrayList<DistanceEntry> getRoutingCache(int nLookAhead) {
+    	if( this.routingCacheLookAhead != nLookAhead ) {
+    		return null;
+    	}
+    	return this.routingCache;
+    }
+    
+    public void peerChanged(int hops) {
+    	// TODO: This does not work correctly when path folding is on
+    	// it is not sure how many hops to clear out.
+    	this.routingCache = null;
+    	if( hops < 1 ) {
+    		return;
+    	}
+    	for( SimpleNode n : this.connections) {
+    		n.peerChanged(hops - 1);
+    	}
     }
 
     private void successfulRequest(SimpleNode foldingFrom) {
@@ -68,6 +103,10 @@ public class SimpleNode {
             return false;
 
         final SimpleNode other = (SimpleNode) o;
+        
+        if( this == other) {
+        	return true;
+        }
 
         if (this.degree() != other.degree())
             return false;
@@ -762,6 +801,7 @@ public class SimpleNode {
 
         connections.add(other);
         lruQueue.push(other);
+        this.peerChanged(this.routingCacheLookAhead);
     }
 
     /**
@@ -792,6 +832,7 @@ public class SimpleNode {
 
         connections.remove(other);
         lruQueue.remove(other);
+        this.peerChanged(this.routingCacheLookAhead);
     }
 
     /**

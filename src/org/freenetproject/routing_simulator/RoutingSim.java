@@ -228,7 +228,7 @@ public final class RoutingSim {
 				throw new IllegalStateException(b.toString());
 			}
 		}
-		g.updateGraphStats();
+		//g.updateGraphStats();
 		return g;
 	}
 

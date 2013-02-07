@@ -9,7 +9,7 @@ public class DistanceEntry implements Comparable<DistanceEntry> {
     /**
      * Distance between the current node (relative) and the final node.
      */
-    private final double distance;
+    private double distance;
     /**
      * The next node that would actually be routed to.
      */
@@ -17,7 +17,7 @@ public class DistanceEntry implements Comparable<DistanceEntry> {
     /**
      * The final node that we are trying to route towards.
      */
-    private final SimpleNode finalnNode;
+    private final SimpleNode finalNode;
     /**
      * The level (hops) of look ahead we are at.
      */
@@ -39,8 +39,13 @@ public class DistanceEntry implements Comparable<DistanceEntry> {
             final SimpleNode finalNode, final int lookAheadLevel) {
         this.distance = distance;
         this.nextNode = nextNode;
-        this.finalnNode = finalNode;
+        this.finalNode = finalNode;
         this.lookAheadLevel = lookAheadLevel;
+    }
+    
+    public void updateDistance(double target) {
+    	double diff = this.getFinalNode().distanceToLoc(target);
+    	this.distance = diff;
     }
 
     /**
@@ -60,8 +65,8 @@ public class DistanceEntry implements Comparable<DistanceEntry> {
     /**
      * @return the finalnNode
      */
-    public final SimpleNode getFinalnNode() {
-        return finalnNode;
+    public final SimpleNode getFinalNode() {
+        return finalNode;
     }
 
     /**
@@ -82,7 +87,7 @@ public class DistanceEntry implements Comparable<DistanceEntry> {
             return false;
         }
         final DistanceEntry other = (DistanceEntry) o;
-        return this.getDistance() == other.getDistance();
+        return this.getFinalNode().equals(other.getFinalNode());
     }
 
     @Override
@@ -95,7 +100,7 @@ public class DistanceEntry implements Comparable<DistanceEntry> {
         StringBuilder b = new StringBuilder();
         b.append(this.getDistance()).append(" ");
         b.append(this.getNextNode().index).append(" ");
-        b.append(this.getFinalnNode().index);
+        b.append(this.getFinalNode().index);
         return b.toString();
     }
 }

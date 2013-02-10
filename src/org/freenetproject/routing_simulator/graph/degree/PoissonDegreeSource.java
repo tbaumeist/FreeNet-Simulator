@@ -7,14 +7,14 @@ import org.apache.commons.math3.distribution.PoissonDistribution;
  */
 public class PoissonDegreeSource implements DegreeSource {
 
-	private final PoissonDistribution distribution;
+    private final PoissonDistribution distribution;
 
-	public PoissonDegreeSource(int mean) {
-		distribution = new PoissonDistribution(mean);
-	}
+    public PoissonDegreeSource(int mean) {
+        distribution = new PoissonDistribution(mean);
+    }
 
-	@Override
-	public int getDegree() {
-		return distribution.sample();
-	}
+    @Override
+    public int getDegree() {
+        return distribution.sample();
+    }
 }

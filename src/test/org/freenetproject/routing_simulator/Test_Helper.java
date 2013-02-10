@@ -15,18 +15,19 @@ import org.freenetproject.routing_simulator.graph.Graph;
 
 public class Test_Helper {
     private final static String resourcePath = "bin/test/org/freenetproject/routing_simulator/resources/";
-    
+
     private Test_Helper() {
     }
-    
-    public static String getResourcePath(){
-            return new java.io.File("").getAbsolutePath() + File.separator + resourcePath;
+
+    public static String getResourcePath() {
+        return new java.io.File("").getAbsolutePath() + File.separator
+                + resourcePath;
     }
-    
-    public static String getResourcePath(String resource){
-            return getResourcePath() + resource;
+
+    public static String getResourcePath(String resource) {
+        return getResourcePath() + resource;
     }
-    
+
     /**
      * Deletes the destination file, if it exists, and writes the graph to it.
      * 
@@ -43,7 +44,7 @@ public class Test_Helper {
                 new FileOutputStream(destination));
         graph.write(outputStream);
     }
-    
+
     public static void writeToFileDot(final Graph graph, final File destination)
             throws Exception {
         assert !destination.exists() || destination.delete();
@@ -57,19 +58,19 @@ public class Test_Helper {
                 new FileInputStream(source));
         return Graph.read(inputStream, getRandom());
     }
-    
+
     public static Graph readFromFileDot(final File source) throws Exception {
         assert source.exists();
         final InputStream inputStream = new FileInputStream(source);
         return Graph.readDot(inputStream, getRandom());
     }
-    
+
     public static Graph readFromFileGml(final File source) throws Exception {
         assert source.exists();
         final InputStream inputStream = new FileInputStream(source);
         return Graph.readGml(inputStream, getRandom());
     }
-    
+
     /**
      * @return A consistent, fresh randomness source.
      */

@@ -10,8 +10,7 @@ public enum FoldingPolicy {
     NONE,
     /**
      * Old: Path fold with 7% acceptance - each node along the chain, multiple
-     * times.
-     * New: Path fold when nodes have open spots in peer table.
+     * times. New: Path fold when nodes have open spots in peer table.
      */
     FREENET,
     /**

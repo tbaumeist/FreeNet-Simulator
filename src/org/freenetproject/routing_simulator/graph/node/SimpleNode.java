@@ -4,7 +4,6 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.freenetproject.routing_simulator.FoldingPolicy;
 import org.freenetproject.routing_simulator.RouteResult;
 import org.freenetproject.routing_simulator.RoutingPolicy;
-import org.freenetproject.routing_simulator.RoutingSim;
 import org.freenetproject.routing_simulator.graph.Location;
 import org.freenetproject.routing_simulator.graph.folding.PathFoldingResult;
 import org.freenetproject.routing_simulator.graph.node.peer.*;
@@ -29,7 +28,8 @@ public class SimpleNode {
     private final int desiredDegree;
     private int successfulRequestCount = 0;
     /*
-     * Cache of the peer routing distances. Cleared when node connections change.
+     * Cache of the peer routing distances. Cleared when node connections
+     * change.
      */
     private ArrayList<DistanceEntry> routingCache = null;
     private int routingCacheLookAhead = 0;
@@ -54,33 +54,35 @@ public class SimpleNode {
         out.writeDouble(location);
         out.writeInt(desiredDegree);
     }
-    
-    public void setRoutingCache(ArrayList<DistanceEntry> distances, int nLookAhead) {
-    	if( this.routingCache != null && this.routingCacheLookAhead == nLookAhead) {
-    		return;
-    	}
-    	this.routingCache = new ArrayList<DistanceEntry>();
-    	this.routingCache.addAll(distances);
-    	this.routingCacheLookAhead = nLookAhead;
+
+    public void setRoutingCache(ArrayList<DistanceEntry> distances,
+            int nLookAhead) {
+        if (this.routingCache != null
+                && this.routingCacheLookAhead == nLookAhead) {
+            return;
+        }
+        this.routingCache = new ArrayList<DistanceEntry>();
+        this.routingCache.addAll(distances);
+        this.routingCacheLookAhead = nLookAhead;
     }
-    
+
     public ArrayList<DistanceEntry> getRoutingCache(int nLookAhead) {
-    	if( this.routingCacheLookAhead != nLookAhead ) {
-    		return null;
-    	}
-    	return this.routingCache;
+        if (this.routingCacheLookAhead != nLookAhead) {
+            return null;
+        }
+        return this.routingCache;
     }
-    
+
     public void peerChanged(int hops) {
-    	// TODO: This does not work correctly when path folding is on
-    	// it is not sure how many hops to clear out.
-    	this.routingCache = null;
-    	if( hops < 1 ) {
-    		return;
-    	}
-    	for( SimpleNode n : this.connections) {
-    		n.peerChanged(hops - 1);
-    	}
+        // TODO: This does not work correctly when path folding is on
+        // it is not sure how many hops to clear out.
+        this.routingCache = null;
+        if (hops < 1) {
+            return;
+        }
+        for (SimpleNode n : this.connections) {
+            n.peerChanged(hops - 1);
+        }
     }
 
     private void successfulRequest(SimpleNode foldingFrom) {
@@ -103,21 +105,21 @@ public class SimpleNode {
             return false;
 
         final SimpleNode other = (SimpleNode) o;
-        
-        if( this == other) {
-        	return true;
+
+        if (this == other) {
+            return true;
         }
 
         if (this.degree() != other.degree())
             return false;
-        
+
         HashSet<Integer> peers = new HashSet<Integer>();
-        for( SimpleNode n : other.getConnections()) {
-        	peers.add(n.index);
+        for (SimpleNode n : other.getConnections()) {
+            peers.add(n.index);
         }
 
         for (int i = 0; i < this.degree(); i++) {
-            if (!peers.contains( this.getConnections().get(i).index))
+            if (!peers.contains(this.getConnections().get(i).index))
                 return false;
         }
 
@@ -684,11 +686,11 @@ public class SimpleNode {
 
         if (backtracking)
             setLastRouted(requestID);
-        
+
         if (!visitedChain.contains(this)) {
             visitedChain.add(this);
         }
-        
+
         /*
          * Check whether the request reached its destination, which was selected
          * from among node locations.
@@ -709,7 +711,7 @@ public class SimpleNode {
 
         // TODO: Probabilistic decrement
         hopsToLive--;
-        
+
         returnChain.add(this);
 
         final int pathLength = visitedChain.size();
@@ -721,10 +723,11 @@ public class SimpleNode {
                     foldingPolicy, visitedChain, returnChain);
             // If the routing did not succeed and did not use all remaining
             // hops, backtrack if enabled.
-            final int additionalHops = (result.getTravelLength() - 1) - pathLength;
+            final int additionalHops = (result.getTravelLength() - 1)
+                    - pathLength;
             if (backtracking && !result.isSuccess()
                     && additionalHops < hopsToLive) {
-                
+
                 // remove this from the return routing list
                 returnChain.remove(this);
                 return this.greedyRoute(target, hopsToLive - additionalHops,

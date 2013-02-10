@@ -1,6 +1,5 @@
 package test.org.freenetproject.routing_simulator.graph;
 
-import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.freenetproject.routing_simulator.graph.Graph;
 import org.freenetproject.routing_simulator.graph.degree.FixedDegreeSource;
@@ -11,14 +10,8 @@ import org.junit.Test;
 
 import test.org.freenetproject.routing_simulator.Test_Helper;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 
 /**
@@ -120,15 +113,15 @@ public class Test_Graph {
                     .getConnections();
             final ArrayList<SimpleNode> connections2 = graph2.getNode(i)
                     .getConnections();
-            
-            if( connections1.size() != connections2.size()) {
-            	return false;
+
+            if (connections1.size() != connections2.size()) {
+                return false;
             }
 
-            for( SimpleNode n : connections1) {
-            	if( !connections2.contains(n)) {
-            		return false;
-            	} 
+            for (SimpleNode n : connections1) {
+                if (!connections2.contains(n)) {
+                    return false;
+                }
             }
         }
         return true;
@@ -301,19 +294,19 @@ public class Test_Graph {
             assert !next.isConnected(previous);
         }
     }
-    
+
     @Test
     public void networkDiameter() throws Exception {
-    	File dotFile = new File(Test_Helper.getResourcePath("20node.dot"));
+        File dotFile = new File(Test_Helper.getResourcePath("20node.dot"));
         final Graph twentyNodes = Test_Helper.readFromFileDot(dotFile);
         twentyNodes.updateGraphStats();
         assert twentyNodes.getNetworkDiameter() == 5;
-        
+
         dotFile = new File(Test_Helper.getResourcePath("30node.dot"));
         final Graph thirtyNodes = Test_Helper.readFromFileDot(dotFile);
         thirtyNodes.updateGraphStats();
         assert thirtyNodes.getNetworkDiameter() == 6;
-        
+
         dotFile = new File(Test_Helper.getResourcePath("40node.dot"));
         final Graph fourtyNodes = Test_Helper.readFromFileDot(dotFile);
         fourtyNodes.updateGraphStats();

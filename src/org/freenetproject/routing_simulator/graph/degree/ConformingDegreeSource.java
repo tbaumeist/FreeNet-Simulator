@@ -6,17 +6,18 @@ import org.freenetproject.routing_simulator.util.WeightedDistribution;
 import java.io.DataInputStream;
 
 /**
- * Provides link lengths conforming with the distribution described by a list of link lengths.
+ * Provides link lengths conforming with the distribution described by a list of
+ * link lengths.
  */
 public class ConformingDegreeSource implements DegreeSource {
-	private final WeightedDistribution distribution;
+    private final WeightedDistribution distribution;
 
-	public ConformingDegreeSource(DataInputStream input, RandomGenerator random) {
-		this.distribution  = new WeightedDistribution(input, random);
-	}
+    public ConformingDegreeSource(DataInputStream input, RandomGenerator random) {
+        this.distribution = new WeightedDistribution(input, random);
+    }
 
-	@Override
-	public int getDegree() {
-		return distribution.randomValue();
-	}
+    @Override
+    public int getDegree() {
+        return distribution.randomValue();
+    }
 }

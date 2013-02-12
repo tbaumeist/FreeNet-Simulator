@@ -1,5 +1,6 @@
 package org.freenetproject.routing_simulator.experiment;
 
+import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.freenetproject.routing_simulator.util.ArrayUtil;
 
 public class RoutingExp {
@@ -42,6 +43,7 @@ public class RoutingExp {
         b.append("routingSuccessRate ");
         b.append("meanSuccessfulDiscoveryRoutingPathLength ");
         b.append("meanSuccessfulRoutingPathLength ");
+        b.append("successfulRoutingPathLengthStdDev ");
         b.append("successfulRoutingPathLengthDistribution ");
         return b.toString();
     }
@@ -51,6 +53,7 @@ public class RoutingExp {
         b.append((double) successes / nRequests * 100).append(' ');
         b.append((double) totalSuccessTravelPathLength / successes).append(' ');
         b.append((double) totalSuccessPathLength / successes).append(' ');
+        b.append(this.stdDevPathLengths()).append(' ');
         b.append(ArrayUtil.stringArrayPair(this.pathLengthDist)).append(' ');
         return b.toString();
     }
@@ -89,11 +92,34 @@ public class RoutingExp {
         b.append("Mean successful routing path length :    \t").append(
                 (double) totalSuccessPathLength / successes);
         b.append("\n");
+        b.append("Successful routing path length std-dev :    \t").append(
+                this.stdDevPathLengths());
+        b.append("\n");
         b.append("\n");
 
-        b.append("Successful Routing Path Length Distribution\nLength Count\n");
+        b.append("Successful Routing Path Length Distribution (Length:Count)\n");
         b.append(ArrayUtil.stringArrayPair(this.pathLengthDist));
 
         return b.toString();
+    }
+    
+    public double stdDevPathLengths() {
+        long sumLengths = 0;
+        long sumSquareLengths = 0;
+        long n = 0;
+        
+        for (int length = 0; length < this.pathLengthDist.length; length++) {
+            int count = this.pathLengthDist[length];
+            n += count;
+            sumLengths += (length * count);
+            sumSquareLengths += (length * length) * count;
+        }
+        
+        if (n == 0)
+            return 0;
+
+        double variance = ((double) sumSquareLengths) / ((double) n)
+                - ((double) (sumLengths * sumLengths)) / ((double) (n * n));
+        return Math.sqrt(variance);
     }
 }

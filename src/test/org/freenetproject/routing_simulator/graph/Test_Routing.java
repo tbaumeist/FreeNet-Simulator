@@ -26,7 +26,8 @@ public class Test_Routing {
         String[] args = new String[] { "--link-ideal", "--degree-fixed", "5",
                 "--graph-size", "2000", "--route", "144000", "--route-hops",
                 "18", "--route-bootstrap", "--route-output",
-                tmpPath + "route.dat", "--graph-save", tmpPath + "graph.g" };
+                tmpPath + "route.dat", "--graph-save", tmpPath + "graph.g",
+                "--log-level", "detailed"};
         new RoutingSim().run(Arguments.parse(args));
         assertTrue(true);
     }

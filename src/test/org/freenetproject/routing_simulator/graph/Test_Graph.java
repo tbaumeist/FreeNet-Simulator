@@ -1,5 +1,7 @@
 package test.org.freenetproject.routing_simulator.graph;
 
+import static org.junit.Assert.*;
+
 import org.apache.commons.math3.random.RandomGenerator;
 import org.freenetproject.routing_simulator.graph.Graph;
 import org.freenetproject.routing_simulator.graph.degree.FixedDegreeSource;
@@ -142,7 +144,7 @@ public class Test_Graph {
 
         final Graph read = Test_Helper.readFromFile(temporary);
 
-        assert equal(written, read);
+        assertTrue( equal(written, read));
     }
 
     @Test
@@ -152,7 +154,7 @@ public class Test_Graph {
 
         final Graph read = Test_Helper.readFromFileDot(temporary);
 
-        assert equal(written, read);
+        assertTrue( equal(written, read));
     }
 
     /**
@@ -172,7 +174,7 @@ public class Test_Graph {
 
         final Graph secondRead = Test_Helper.readFromFile(temporary);
 
-        assert equal(firstRead, secondRead);
+        assertTrue( equal(firstRead, secondRead));
     }
 
     @Test
@@ -185,7 +187,7 @@ public class Test_Graph {
 
         final Graph secondRead = Test_Helper.readFromFileDot(temporary);
 
-        assert equal(firstRead, secondRead);
+        assertTrue( equal(firstRead, secondRead));
     }
 
     @Test
@@ -196,7 +198,7 @@ public class Test_Graph {
         File dotFile = new File(Test_Helper.getResourcePath("dot-graph-1.dot"));
         final Graph secondRead = Test_Helper.readFromFileDot(dotFile);
 
-        assert equal(firstRead, secondRead);
+        assertTrue( equal(firstRead, secondRead));
     }
 
     @Test
@@ -211,9 +213,9 @@ public class Test_Graph {
 
         final Graph thirdRead = Test_Helper.readFromFileDot(temporary);
 
-        assert equal(firstRead, secondRead);
-        assert equal(secondRead, thirdRead);
-        assert equal(firstRead, thirdRead);
+        assertTrue( equal(firstRead, secondRead));
+        assertTrue( equal(secondRead, thirdRead));
+        assertTrue( equal(firstRead, thirdRead));
     }
 
     /**
@@ -225,11 +227,11 @@ public class Test_Graph {
         final Graph one = generateKleinberg();
         final Graph two = generateKleinberg();
 
-        assert equal(two, one);
+        assertTrue( equal(two, one));
 
         two.getNode(0).disconnect(two.getNode(0).getConnections().get(0));
 
-        assert !equal(two, one);
+        assertTrue( !equal(two, one));
     }
 
     /**
@@ -246,7 +248,7 @@ public class Test_Graph {
         Graph directed = generateLattice(true);
 
         // Connection from each node to the next in a circle.
-        assert directed.nEdges() == directed.size();
+        assertTrue( directed.nEdges() == directed.size());
 
         // Directed edge from X to X - 1 mod N for all X = 0..N - 1.
         for (int i = 0; i < directed.size(); i++) {
@@ -258,15 +260,15 @@ public class Test_Graph {
                     directed.size()));
 
             // Directed connection from -> to.
-            assert from.isConnected(to);
-            assert !to.isConnected(from);
-            assert from.degree() == 1;
+            assertTrue( from.isConnected(to));
+            assertTrue( !to.isConnected(from));
+            assertTrue( from.degree() == 1);
         }
 
         Graph undirected = generateLattice(false);
 
         // Connections between adjacent nodes in a circle.
-        assert undirected.nEdges() == directed.size();
+        assertTrue( undirected.nEdges() == directed.size());
 
         // Undirected edges between X and X - 1, and X and X + 1 for all X =
         // 0..N - 1.
@@ -278,20 +280,20 @@ public class Test_Graph {
                     % undirected.size());
 
             // Undirected to previous.
-            assert from.isConnected(previous);
-            assert previous.isConnected(from);
+            assertTrue( from.isConnected(previous));
+            assertTrue( previous.isConnected(from));
 
             // Undirected to next.
-            assert from.isConnected(next);
-            assert next.isConnected(from);
+            assertTrue( from.isConnected(next));
+            assertTrue( next.isConnected(from));
 
             // One connection to the previous, one connection to the next. No
             // other lattice edges.
-            assert from.degree() == 2;
+            assertTrue( from.degree() == 2);
 
             // Otherwise the three are not connected.
-            assert !previous.isConnected(next);
-            assert !next.isConnected(previous);
+            assertTrue( !previous.isConnected(next));
+            assertTrue( !next.isConnected(previous));
         }
     }
 
@@ -300,16 +302,16 @@ public class Test_Graph {
         File dotFile = new File(Test_Helper.getResourcePath("20node.dot"));
         final Graph twentyNodes = Test_Helper.readFromFileDot(dotFile);
         twentyNodes.updateGraphStats();
-        assert twentyNodes.getNetworkDiameter() == 5;
+        assertTrue( twentyNodes.getNetworkDiameter() == 5);
 
         dotFile = new File(Test_Helper.getResourcePath("30node.dot"));
         final Graph thirtyNodes = Test_Helper.readFromFileDot(dotFile);
         thirtyNodes.updateGraphStats();
-        assert thirtyNodes.getNetworkDiameter() == 6;
+        assertTrue( thirtyNodes.getNetworkDiameter() == 6);
 
         dotFile = new File(Test_Helper.getResourcePath("40node.dot"));
         final Graph fourtyNodes = Test_Helper.readFromFileDot(dotFile);
         fourtyNodes.updateGraphStats();
-        assert fourtyNodes.getNetworkDiameter() == 9;
+        assertTrue( fourtyNodes.getNetworkDiameter() == 9);
     }
 }

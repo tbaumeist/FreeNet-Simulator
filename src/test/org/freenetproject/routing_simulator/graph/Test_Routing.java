@@ -1,8 +1,8 @@
 package test.org.freenetproject.routing_simulator.graph;
 
-import java.io.File;
+import static org.junit.Assert.*;
 
-import junit.framework.Assert;
+import java.io.File;
 
 import org.freenetproject.routing_simulator.Arguments;
 import org.freenetproject.routing_simulator.FoldingPolicy;
@@ -28,7 +28,7 @@ public class Test_Routing {
                 "18", "--route-bootstrap", "--route-output",
                 tmpPath + "route.dat", "--graph-save", tmpPath + "graph.g" };
         new RoutingSim().run(Arguments.parse(args));
-        Assert.assertTrue(true);
+        assertTrue(true);
     }
 
     @Test
@@ -40,8 +40,8 @@ public class Test_Routing {
         SimpleNode nodeA = graph.getNode(0);
         SimpleNode nodeC = graph.getNode(2);
 
-        assert nodeA.getLocation() == 0.1;
-        assert nodeC.getLocation() == 0.3;
+        assertTrue( nodeA.getLocation() == 0.1);
+        assertTrue( nodeC.getLocation() == 0.3);
 
         int maxHTL = 6;
         RouteResult result = nodeA.route(nodeC, maxHTL,
@@ -50,41 +50,41 @@ public class Test_Routing {
         // 0.3
         // > means routed to new node
         // < means had to back track
-        assert result.isSuccess();
-        assert result.getPathLength() == 3;
-        assert result.getTravelLength() == 6;
+        assertTrue( result.isSuccess());
+        assertTrue( result.getPathLength() == 3);
+        assertTrue( result.getTravelLength() == 6);
 
         SimpleNode nodeH = graph.getNode(7);
-        assert nodeH.getLocation() == 0.8;
+        assertTrue( nodeH.getLocation() == 0.8);
         maxHTL = 7;
         result = nodeA.route(nodeH, maxHTL, RoutingPolicy.BACKTRACKING,
                 FoldingPolicy.NONE, 1, true);
-        assert !result.isSuccess();
-        assert result.getTravelLength() == maxHTL;
+        assertTrue( !result.isSuccess());
+        assertTrue( result.getTravelLength() == maxHTL);
 
         maxHTL = 8;
         result = nodeA.route(nodeH, maxHTL, RoutingPolicy.BACKTRACKING,
                 FoldingPolicy.NONE, 1, true);
         // path .1 > .7 > .2 > .5 < .2 < .7 < .1 > .6 > .4 > .9 > .8
-        assert result.isSuccess();
-        assert result.getTravelLength() == 8;
-        assert result.getPathLength() == 5;
+        assertTrue( result.isSuccess());
+        assertTrue( result.getTravelLength() == 8);
+        assertTrue( result.getPathLength() == 5);
 
         // look ahead of 2
         result = nodeA.route(nodeH, maxHTL, RoutingPolicy.BACKTRACKING,
                 FoldingPolicy.NONE, 2, true);
         // path .1 > .7 > .2 > .5 < .2 < .7 < .1 > .6 > .4 > .9 > .8
-        assert result.isSuccess();
-        assert result.getTravelLength() == 7;
-        assert result.getPathLength() == 4;
+        assertTrue( result.isSuccess());
+        assertTrue( result.getTravelLength() == 7);
+        assertTrue( result.getPathLength() == 4);
 
         // look ahead of 3
         result = nodeA.route(nodeH, maxHTL, RoutingPolicy.BACKTRACKING,
                 FoldingPolicy.NONE, 3, true);
         // path .1 > .7 > .2 > .5 < .2 < .7 < .1 > .6 > .4 > .9 > .8
-        assert result.isSuccess();
-        assert result.getTravelLength() == 4;
-        assert result.getPathLength() == 4;
+        assertTrue( result.isSuccess());
+        assertTrue( result.getTravelLength() == 4);
+        assertTrue( result.getPathLength() == 4);
 
     }
 

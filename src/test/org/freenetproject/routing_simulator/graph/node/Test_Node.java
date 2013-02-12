@@ -1,5 +1,7 @@
 package test.org.freenetproject.routing_simulator.graph.node;
 
+import static org.junit.Assert.*;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.freenetproject.routing_simulator.graph.Graph;
@@ -20,19 +22,19 @@ public class Test_Node {
         final SimpleNode second = graph.getNode(1);
 
         // Reflexive.
-        assert node.equals(node);
+        assertTrue( node.equals(node));
 
         // Symmetric within the class.
-        assert !node.equals(second);
-        assert !second.equals(node);
+        assertTrue( !node.equals(second));
+        assertTrue( !second.equals(node));
 
         // Symmetric with other classes.
         final Object testObject = new Object();
-        assert !node.equals(testObject);
-        assert !testObject.equals(node);
+        assertTrue( !node.equals(testObject));
+        assertTrue( !testObject.equals(node));
 
         // Not equal to null.
-        assert !node.equals(null);
+        assertTrue( !node.equals(null));
     }
 
     @Test
@@ -59,13 +61,13 @@ public class Test_Node {
         A.getLRUQueue().toArrayOrdered(before);
 
         // B was not promoted, and so should be the least recently used.
-        assert A.disconnectCandidate().equals(B);
+        assertTrue( A.disconnectCandidate().equals(B));
 
         SimpleNode after[] = new SimpleNode[A.getLRUQueue().size()];
         A.getLRUQueue().toArrayOrdered(after);
 
-        assert before.length == after.length;
+        assertTrue( before.length == after.length);
         for (int i = 0; i < before.length; i++)
-            assert before[i].equals(after[i]);
+            assertTrue( before[i].equals(after[i]));
     }
 }

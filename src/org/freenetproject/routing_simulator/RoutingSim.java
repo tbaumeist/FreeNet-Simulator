@@ -67,6 +67,12 @@ public final class RoutingSim {
 
         SimLogger.setup(arguments.logLevel);
         LOGGER.info(arguments.toString());
+        
+        // TODO: Temp check remove
+        if( arguments.routingRandomChance != 0 || arguments.lookAheadPrecisionLoss != 0 ) {
+            LOGGER.severe("--route-random-chance and --route-look-precision not implemented yet, must be zero.");
+            return;
+        }
 
         if (arguments.pause) {
             LOGGER.severe("Press enter to continue...");

@@ -161,6 +161,14 @@ public final class Arguments {
      * Routing policy to use.
      */
     public final RoutingPolicy routingPolicy;
+    /**
+     * Rate of precision loss to use.
+     */
+    public final double lookAheadPrecisionLoss;
+    /**
+     * Probability to randomly route a request.
+     */
+    public final double routingRandomChance;
 
     /*
      * Private attributes of the arguments class
@@ -245,6 +253,9 @@ public final class Arguments {
             false,
             "If present, the simulator will assign locations with even spacing and, when using --ideal-link, take shortcuts to speed up graph generation.");
 
+    /*
+     * Degree options
+     */
     private static final Option OPT_DEGREE_OUTPUT = new Option("do",
             "degree-output", true, "Output file for degree distribution.");
     private static final Option OPT_DEGREE_FIXED = new Option("df",
@@ -259,6 +270,9 @@ public final class Arguments {
             "degree-poisson", true,
             "Distribution conforming to a Poisson distribution with the given mean.");
 
+    /*
+     * Link options
+     */
     private static final Option OPT_LINK_OUTPUT = new Option("lo",
             "link-output", true, "Output file for link length distribution.");
     private static final Option OPT_LINK_EXCLUDE_LATTICE = new Option(
@@ -276,6 +290,9 @@ public final class Arguments {
             true,
             "Distribution conforming to a file. Takes a path to a degree distribution file of the format \"[degree] [number of occurrences]\\n\"\"");
 
+    /*
+     * GRouting options
+     */
     private static final Option OPT_ROUTE = new Option(
             "r",
             "route",
@@ -301,7 +318,20 @@ public final class Arguments {
     private static final Option OPT_ROUTE_OLD_FOLDING = new Option("rop",
             "route-old-path-fold", false,
             "Use the old path folding mechanism. (7% chance to randomly path fold).");
+    private static final Option OPT_ROUTE_LOOK_PREC = new Option(
+            "rlp",
+            "route-look-precision",
+            true,
+            "The precision loss rate for look ahead information. Specified as a floating point.");
+    private static final Option OPT_ROUTE_RANDOM_CHANCE = new Option(
+            "rrc",
+            "route-random-chance",
+            true,
+            "The probability any given node will randomly route instead of using the default routing algorithm.");
 
+    /*
+     * Probing options
+     */
     private static final Option OPT_PROBE = new Option(
             "p",
             "probe",
@@ -324,6 +354,7 @@ public final class Arguments {
             final boolean bootstrap, final int seed, final int networkSize,
             final int shortcuts, final int maxHopsProbe,
             final int maxHopsRequest, final int nRequests,
+            final double precisionLoss, final double routeRandomChance,
             final GraphGenerator graphGenerator,
             final DataInputStream degreeInput, final DataInputStream linkInput,
             final DataInputStream graphInput,
@@ -349,6 +380,8 @@ public final class Arguments {
         this.maxHopsProbe = maxHopsProbe;
         this.maxHopsRoute = maxHopsRequest;
         this.nRouteRequests = nRequests;
+        this.lookAheadPrecisionLoss = precisionLoss;
+        this.routingRandomChance = routeRandomChance;
         this.graphGenerator = graphGenerator;
         this.degreeInput = degreeInput;
         this.linkInput = linkInput;
@@ -508,6 +541,8 @@ public final class Arguments {
         // "Base filename to output hop histograms for each sink policy.
         // Appended with -<policy-num> for each.");
         options.addOption(OPT_ROUTE_BOOTSTRAP);
+        options.addOption(OPT_ROUTE_LOOK_PREC);
+        options.addOption(OPT_ROUTE_RANDOM_CHANCE);
 
         // Simulations: Probe distribution
         options.addOption(OPT_PROBE);
@@ -767,6 +802,12 @@ public final class Arguments {
         final int nLookAhead = cmd.hasOption(OPT_ROUTE_LOOK_AHEAD.getLongOpt()) ? Integer
                 .valueOf(cmd.getOptionValue(OPT_ROUTE_LOOK_AHEAD.getLongOpt()))
                 : 1;
+        final double precisionLoss = cmd.hasOption(OPT_ROUTE_LOOK_PREC
+                .getLongOpt()) ? Double.valueOf(cmd
+                .getOptionValue(OPT_ROUTE_LOOK_PREC.getLongOpt())) : 0;
+        final double randomRouteChance = cmd.hasOption(OPT_ROUTE_RANDOM_CHANCE
+                .getLongOpt()) ? Double.valueOf(cmd
+                .getOptionValue(OPT_ROUTE_RANDOM_CHANCE.getLongOpt())) : 0;
         final String logLevel = cmd.hasOption(OPT_LOG_LEVEL.getLongOpt()) ? cmd
                 .getOptionValue(OPT_LOG_LEVEL.getLongOpt()) : LOGGING_DEFAULT
                 .name();
@@ -777,8 +818,9 @@ public final class Arguments {
                 cmd.hasOption(OPT_LINK_EXCLUDE_LATTICE.getLongOpt()),
                 cmd.hasOption(OPT_ROUTE_BOOTSTRAP.getLongOpt()), seed,
                 networkSize, shortcuts, maxHopsProbe, maxHopsRequest,
-                nRequests, graphGenerator, degreeInput, linkInput, graphInput,
-                degreeOutput, linkOutput, graphOutput, graphOutputText,
+                nRequests, precisionLoss, randomRouteChance, graphGenerator,
+                degreeInput, linkInput, graphInput, degreeOutput, linkOutput,
+                graphOutput, graphOutputText,
                 cmd.getOptionValue(OPT_PROBE_OUTPUT.getLongOpt()),
                 routingSimOutput, foldingPolicy, routingPolicy, nLookAhead,
                 logLevel, pause, scriptOutput, oldPathFolding, cmd);

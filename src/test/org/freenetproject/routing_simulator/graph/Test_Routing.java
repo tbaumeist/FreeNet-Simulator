@@ -168,6 +168,32 @@ public class Test_Routing {
         assertTrue(result.getRoutingPath().get(7).index == 16);
         assertTrue(result.getRoutingPath().get(8).index == 17);
         assertTrue(result.getRoutingPath().get(9).index == 18);
+        
+        result = nodeA.route(nodeB, maxHTL,
+                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 2, true);
+        
+        //[0.4136244989486966 5, 0.4615541189612562 6, 0.9410194257801392 19, 0.9131614916580988 18]
+        
+        assertTrue(result.isSuccess());
+        assertTrue(result.getPathLength() == 4);
+        assertTrue(result.getTravelLength() == 4);
+        assertTrue(result.getRoutingPath().get(0).index == 5);
+        assertTrue(result.getRoutingPath().get(1).index == 6);
+        assertTrue(result.getRoutingPath().get(2).index == 19);
+        assertTrue(result.getRoutingPath().get(3).index == 18);
+        
+        result = nodeA.route(nodeB, maxHTL,
+                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 3, true);
+        
+        // [0.4136244989486966 5, 0.4615541189612562 6, 0.9410194257801392 19, 0.9131614916580988 18]
+        
+        assertTrue(result.isSuccess());
+        assertTrue(result.getPathLength() == 4);
+        assertTrue(result.getTravelLength() == 4);
+        assertTrue(result.getRoutingPath().get(0).index == 5);
+        assertTrue(result.getRoutingPath().get(1).index == 6);
+        assertTrue(result.getRoutingPath().get(2).index == 19);
+        assertTrue(result.getRoutingPath().get(3).index == 18);
     }
 
 }

@@ -652,16 +652,16 @@ public class SimpleNode {
         switch (routingPolicy) {
         case GREEDY:
             return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
-                    false, newFoldingMethod, new Greedy(), foldingPolicy,
+                    false, newFoldingMethod, new Greedy(foldingPolicy), foldingPolicy,
                     new HashSet<SimpleNode>(), new ArrayList<SimpleNode>());
         case LOOP_DETECTION:
             return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
-                    false, newFoldingMethod, new LoopDetection(requestID),
+                    false, newFoldingMethod, new LoopDetection(foldingPolicy, requestID),
                     foldingPolicy, new HashSet<SimpleNode>(),
                     new ArrayList<SimpleNode>());
         case BACKTRACKING:
             return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
-                    true, newFoldingMethod, new LoopDetection(requestID),
+                    true, newFoldingMethod, new LoopDetection(foldingPolicy, requestID),
                     foldingPolicy, new HashSet<SimpleNode>(),
                     new ArrayList<SimpleNode>());
         default:

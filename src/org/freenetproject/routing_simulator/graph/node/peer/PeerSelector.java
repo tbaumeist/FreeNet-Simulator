@@ -5,17 +5,26 @@ import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 
+import org.freenetproject.routing_simulator.FoldingPolicy;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.freenetproject.routing_simulator.util.DistanceEntry;
 
 public abstract class PeerSelector {
+    protected final FoldingPolicy foldingPolicy;
+    
+    public PeerSelector(final FoldingPolicy foldingPolicy) {
+        this.foldingPolicy = foldingPolicy;
+    }
+    
     public abstract SimpleNode selectPeer(final double target,
             final SimpleNode from, final int nLookAhead);
 
     protected ArrayList<DistanceEntry> getDistances(SimpleNode node,
             final double target, final int nLookAhead) {
         ArrayList<DistanceEntry> peers = new ArrayList<DistanceEntry>();
-        if (node.getRoutingCache(nLookAhead) != null) {
+        
+        // only use caching if NONE path folding policy is used.
+        if (this.foldingPolicy == FoldingPolicy.NONE && node.getRoutingCache(nLookAhead) != null) {
             peers.addAll(node.getRoutingCache(nLookAhead));
             updateDistances(peers, target);
             return peers;
@@ -29,7 +38,8 @@ public abstract class PeerSelector {
         peers = getDistances(peers, target, nLookAhead, 1);
 
         Collections.sort(peers);
-        node.setRoutingCache(peers, nLookAhead);
+        if (this.foldingPolicy == FoldingPolicy.NONE)
+            node.setRoutingCache(peers, nLookAhead);
         return peers;
     }
 

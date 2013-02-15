@@ -2,6 +2,7 @@ package org.freenetproject.routing_simulator.graph.node.peer;
 
 import java.util.ArrayList;
 
+import org.apache.commons.math3.random.RandomGenerator;
 import org.freenetproject.routing_simulator.FoldingPolicy;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.freenetproject.routing_simulator.util.DistanceEntry;
@@ -10,8 +11,10 @@ public class LoopDetection extends PeerSelector {
 
     private long requestID;
 
-    public LoopDetection(final FoldingPolicy foldingPolicy, long requestId) {
-        super(foldingPolicy);
+    public LoopDetection(final FoldingPolicy foldingPolicy,
+            final RandomGenerator random, final double randomRoutingChance,
+            long requestId) {
+        super(foldingPolicy, random, randomRoutingChance);
         this.requestID = requestId;
     }
 

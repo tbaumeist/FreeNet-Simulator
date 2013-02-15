@@ -2,16 +2,18 @@ package org.freenetproject.routing_simulator.graph.node.peer;
 
 import java.util.ArrayList;
 
+import org.apache.commons.math3.random.RandomGenerator;
 import org.freenetproject.routing_simulator.FoldingPolicy;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.freenetproject.routing_simulator.util.DistanceEntry;
 
 public class Greedy extends PeerSelector {
-    
-    public Greedy( final FoldingPolicy foldingPolicy ) {
-        super(foldingPolicy);
+
+    public Greedy(final FoldingPolicy foldingPolicy,
+            final RandomGenerator random, final double randomRoutingChance) {
+        super(foldingPolicy, random, randomRoutingChance);
     }
-    
+
     @Override
     public SimpleNode selectPeer(double target, SimpleNode from,
             final int nLookAhead) {

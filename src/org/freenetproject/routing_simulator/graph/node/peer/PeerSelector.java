@@ -1,10 +1,12 @@
 package org.freenetproject.routing_simulator.graph.node.peer;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 
+import org.apache.commons.math3.random.RandomGenerator;
 import org.freenetproject.routing_simulator.FoldingPolicy;
 import org.freenetproject.routing_simulator.graph.Location;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
@@ -12,20 +14,26 @@ import org.freenetproject.routing_simulator.util.DistanceEntry;
 
 public abstract class PeerSelector {
     protected final FoldingPolicy foldingPolicy;
-    
-    public PeerSelector(final FoldingPolicy foldingPolicy) {
+    protected final double randomRoutingChance;
+    protected final RandomGenerator random;
+
+    public PeerSelector(final FoldingPolicy foldingPolicy,
+            final RandomGenerator random, final double randomRoutingChance) {
         this.foldingPolicy = foldingPolicy;
+        this.random = random;
+        this.randomRoutingChance = randomRoutingChance;
     }
-    
+
     public abstract SimpleNode selectPeer(final double target,
             final SimpleNode from, final int nLookAhead);
 
     protected ArrayList<DistanceEntry> getDistances(SimpleNode node,
             final double target, final int nLookAhead) {
         ArrayList<DistanceEntry> peers = new ArrayList<DistanceEntry>();
-        
+
         // only use caching if NONE path folding policy is used.
-        if (this.foldingPolicy == FoldingPolicy.NONE && node.getRoutingCache(nLookAhead) != null) {
+        if (this.foldingPolicy == FoldingPolicy.NONE
+                && node.getRoutingCache(nLookAhead) != null) {
             peers.addAll(node.getRoutingCache(nLookAhead));
             updateDistances(peers, target);
             return peers;
@@ -38,20 +46,32 @@ public abstract class PeerSelector {
 
         peers = getDistances(peers, target, nLookAhead, 1);
 
-        Collections.sort(peers);
+        this.sortDistanceList(peers);
         if (this.foldingPolicy == FoldingPolicy.NONE)
             node.setRoutingCache(peers, nLookAhead);
         return peers;
     }
 
+    protected void sortDistanceList(List<DistanceEntry> nodes ) {
+        double dice = this.random.nextDouble();
+        if( dice < this.randomRoutingChance ) {
+            Collections.shuffle(nodes);
+        }
+        else {
+            Collections.sort(nodes);
+        }
+    }
+
     private void updateDistances(ArrayList<DistanceEntry> nodes, double target) {
         for (DistanceEntry e : nodes) {
-            e.setDistance(this.calculateDifference(e.getFinalNode(), e.getLookAheadLevel(), target));
+            e.setDistance(this.calculateDifference(e.getFinalNode(),
+                    e.getLookAheadLevel(), target));
         }
-        Collections.sort(nodes);
+        this.sortDistanceList(nodes);
     }
-    
-    protected double calculateDifference(SimpleNode n, int lookAhead, double target) {
+
+    protected double calculateDifference(SimpleNode n, int lookAhead,
+            double target) {
         return n.distanceToLoc(target);
     }
 
@@ -69,7 +89,7 @@ public abstract class PeerSelector {
             for (SimpleNode p : dist.getFinalNode().getConnections()) {
                 if (!nextLevelPeers.containsKey(p))
                     nextLevelPeers.put(p, new ArrayList<DistanceEntry>());
-                
+
                 double diff = this.calculateDifference(p, nLevel + 1, target);
                 nextLevelPeers.get(p).add(
                         new DistanceEntry(diff, dist.getNextNode(), p,

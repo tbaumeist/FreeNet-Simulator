@@ -640,7 +640,8 @@ public class SimpleNode {
     public RouteResult route(final SimpleNode target, final int hopsToLive,
             final RoutingPolicy routingPolicy,
             final FoldingPolicy foldingPolicy, final int nLookAhead,
-            final boolean newFoldingMethod, final double precisionLoss) {
+            final boolean newFoldingMethod, final double precisionLoss,
+            final double randomRoutingChance) {
         /*
          * NOTE: This is static and package-local: not thread-safe! The
          * simulator is as of this writing strictly single-threaded. The request
@@ -652,23 +653,27 @@ public class SimpleNode {
         switch (routingPolicy) {
         case GREEDY:
             return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
-                    false, newFoldingMethod, new Greedy(foldingPolicy),
-                    foldingPolicy, new HashSet<SimpleNode>(),
-                    new ArrayList<SimpleNode>());
+                    false, newFoldingMethod,
+                    new Greedy(foldingPolicy, this.getRandom(),
+                            randomRoutingChance), foldingPolicy,
+                    new HashSet<SimpleNode>(), new ArrayList<SimpleNode>());
         case LOOP_DETECTION:
             return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
                     false, newFoldingMethod, new LoopDetection(foldingPolicy,
-                            requestID), foldingPolicy,
-                    new HashSet<SimpleNode>(), new ArrayList<SimpleNode>());
+                            this.getRandom(), randomRoutingChance, requestID),
+                    foldingPolicy, new HashSet<SimpleNode>(),
+                    new ArrayList<SimpleNode>());
         case BACKTRACKING:
             return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
                     true, newFoldingMethod, new LoopDetection(foldingPolicy,
-                            requestID), foldingPolicy,
-                    new HashSet<SimpleNode>(), new ArrayList<SimpleNode>());
+                            this.getRandom(), randomRoutingChance, requestID),
+                    foldingPolicy, new HashSet<SimpleNode>(),
+                    new ArrayList<SimpleNode>());
         case PRECISION_LOSS:
             return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
                     true, newFoldingMethod, new PrecisionLoss(foldingPolicy,
-                            requestID, precisionLoss), foldingPolicy,
+                            this.getRandom(), randomRoutingChance, requestID,
+                            precisionLoss), foldingPolicy,
                     new HashSet<SimpleNode>(), new ArrayList<SimpleNode>());
         default:
             throw new IllegalStateException("Routing for policy "

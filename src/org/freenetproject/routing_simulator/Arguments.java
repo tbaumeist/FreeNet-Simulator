@@ -738,6 +738,22 @@ public final class Arguments {
         } else {
             routingPolicy = ROUTING_DEFAULT;
         }
+        
+        if( routingPolicy == RoutingPolicy.PRECISION_LOSS &&
+                !cmd.hasOption(OPT_ROUTE_LOOK_PREC.getLongOpt())) {
+            LOGGER.severe(routingPolicy.name()
+                    + " was specified, but not --"
+                    + OPT_ROUTE_LOOK_PREC.getLongOpt() + ".");
+            return null;
+        }
+        
+        if( routingPolicy != RoutingPolicy.PRECISION_LOSS &&
+                cmd.hasOption(OPT_ROUTE_LOOK_PREC.getLongOpt())) {
+            LOGGER.severe(OPT_ROUTE_LOOK_PREC.getLongOpt()
+                    + " was specified, but not the routing policy "+
+                    RoutingPolicy.PRECISION_LOSS.name()+".");
+            return null;
+        }
 
         // Check for problems with specified paths.
         // Check if input files can be read.

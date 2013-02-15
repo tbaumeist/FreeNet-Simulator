@@ -67,10 +67,10 @@ public final class RoutingSim {
 
         SimLogger.setup(arguments.logLevel);
         LOGGER.info(arguments.toString());
-        
+
         // TODO: Temp check remove
-        if( arguments.routingRandomChance != 0 || arguments.lookAheadPrecisionLoss != 0 ) {
-            LOGGER.severe("--route-random-chance and --route-look-precision not implemented yet, must be zero.");
+        if (arguments.routingRandomChance != 0) {
+            LOGGER.severe("--route-random-chance not implemented yet, must be zero.");
             return;
         }
 
@@ -357,6 +357,7 @@ public final class RoutingSim {
         final boolean bootstrap = arguments.bootstrap;
         final OutputStream outputRoute = arguments.routingSimOutput;
         final boolean scriptOutput = arguments.scriptOutput;
+        final double precisionLoss = arguments.lookAheadPrecisionLoss;
 
         // Print out current run progress for users benefit
         System.err.println("\n\tRouting Simulation");
@@ -380,7 +381,8 @@ public final class RoutingSim {
             final SimpleNode destination = graph.getNode(rand.nextInt(graph
                     .size()));
             final RouteResult result = origin.route(destination, maxHTL,
-                    routingPolicy, foldingPolicy, nLookAhead, newFoldingMethod);
+                    routingPolicy, foldingPolicy, nLookAhead, newFoldingMethod,
+                    precisionLoss);
 
             experiment.record(result.isSuccess(), result.getPathLength(),
                     result.getTravelLength());

@@ -6,6 +6,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 import org.freenetproject.routing_simulator.FoldingPolicy;
+import org.freenetproject.routing_simulator.graph.Location;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.freenetproject.routing_simulator.util.DistanceEntry;
 
@@ -45,9 +46,13 @@ public abstract class PeerSelector {
 
     private void updateDistances(ArrayList<DistanceEntry> nodes, double target) {
         for (DistanceEntry e : nodes) {
-            e.updateDistance(target);
+            e.setDistance(this.calculateDifference(e.getFinalNode(), e.getLookAheadLevel(), target));
         }
         Collections.sort(nodes);
+    }
+    
+    protected double calculateDifference(SimpleNode n, int lookAhead, double target) {
+        return n.distanceToLoc(target);
     }
 
     private ArrayList<DistanceEntry> getDistances(
@@ -64,7 +69,8 @@ public abstract class PeerSelector {
             for (SimpleNode p : dist.getFinalNode().getConnections()) {
                 if (!nextLevelPeers.containsKey(p))
                     nextLevelPeers.put(p, new ArrayList<DistanceEntry>());
-                double diff = p.distanceToLoc(target);
+                
+                double diff = this.calculateDifference(p, nLevel + 1, target);
                 nextLevelPeers.get(p).add(
                         new DistanceEntry(diff, dist.getNextNode(), p,
                                 nLevel + 1));

@@ -43,8 +43,7 @@ public class DistanceEntry implements Comparable<DistanceEntry> {
         this.lookAheadLevel = lookAheadLevel;
     }
 
-    public void updateDistance(double target) {
-        double diff = this.getFinalNode().distanceToLoc(target);
+    public void setDistance(double diff) {
         this.distance = diff;
     }
 

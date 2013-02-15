@@ -22,5 +22,10 @@ public enum RoutingPolicy {
      * Loop detection with backtracking: when there are no non-loop nodes
      * remaining the request is passed up the chain for another routing attempt.
      */
-    BACKTRACKING
+    BACKTRACKING,
+    /**
+     * Uses backtracking routing and precision of node look ahead is reduced
+     * as the look ahead increases.
+     */
+    PRECISION_LOSS
 }

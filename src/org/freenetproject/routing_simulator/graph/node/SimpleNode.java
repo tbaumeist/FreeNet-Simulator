@@ -640,7 +640,7 @@ public class SimpleNode {
     public RouteResult route(final SimpleNode target, final int hopsToLive,
             final RoutingPolicy routingPolicy,
             final FoldingPolicy foldingPolicy, final int nLookAhead,
-            final boolean newFoldingMethod) {
+            final boolean newFoldingMethod, final double precisionLoss) {
         /*
          * NOTE: This is static and package-local: not thread-safe! The
          * simulator is as of this writing strictly single-threaded. The request
@@ -652,18 +652,24 @@ public class SimpleNode {
         switch (routingPolicy) {
         case GREEDY:
             return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
-                    false, newFoldingMethod, new Greedy(foldingPolicy), foldingPolicy,
-                    new HashSet<SimpleNode>(), new ArrayList<SimpleNode>());
+                    false, newFoldingMethod, new Greedy(foldingPolicy),
+                    foldingPolicy, new HashSet<SimpleNode>(),
+                    new ArrayList<SimpleNode>());
         case LOOP_DETECTION:
             return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
-                    false, newFoldingMethod, new LoopDetection(foldingPolicy, requestID),
-                    foldingPolicy, new HashSet<SimpleNode>(),
-                    new ArrayList<SimpleNode>());
+                    false, newFoldingMethod, new LoopDetection(foldingPolicy,
+                            requestID), foldingPolicy,
+                    new HashSet<SimpleNode>(), new ArrayList<SimpleNode>());
         case BACKTRACKING:
             return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
-                    true, newFoldingMethod, new LoopDetection(foldingPolicy, requestID),
-                    foldingPolicy, new HashSet<SimpleNode>(),
-                    new ArrayList<SimpleNode>());
+                    true, newFoldingMethod, new LoopDetection(foldingPolicy,
+                            requestID), foldingPolicy,
+                    new HashSet<SimpleNode>(), new ArrayList<SimpleNode>());
+        case PRECISION_LOSS:
+            return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
+                    true, newFoldingMethod, new PrecisionLoss(foldingPolicy,
+                            requestID, precisionLoss), foldingPolicy,
+                    new HashSet<SimpleNode>(), new ArrayList<SimpleNode>());
         default:
             throw new IllegalStateException("Routing for policy "
                     + routingPolicy.name() + " not implemented.");
@@ -703,7 +709,8 @@ public class SimpleNode {
         }
 
         // Find node next node to route to.
-        final SimpleNode next = peerSelector.selectPeer(target, this, nLookAhead);
+        final SimpleNode next = peerSelector.selectPeer(target, this,
+                nLookAhead);
 
         // Nowhere is closer or available, and this node is not the target one.
         if (next == this)

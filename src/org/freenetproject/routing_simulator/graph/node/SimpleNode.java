@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 
 /**
  * A simple node model. Has a location and a set of connections.
@@ -652,16 +653,16 @@ public class SimpleNode {
         case GREEDY:
             return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
                     false, newFoldingMethod, new Greedy(), foldingPolicy,
-                    new ArrayList<SimpleNode>(), new ArrayList<SimpleNode>());
+                    new HashSet<SimpleNode>(), new ArrayList<SimpleNode>());
         case LOOP_DETECTION:
             return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
                     false, newFoldingMethod, new LoopDetection(requestID),
-                    foldingPolicy, new ArrayList<SimpleNode>(),
+                    foldingPolicy, new HashSet<SimpleNode>(),
                     new ArrayList<SimpleNode>());
         case BACKTRACKING:
             return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
                     true, newFoldingMethod, new LoopDetection(requestID),
-                    foldingPolicy, new ArrayList<SimpleNode>(),
+                    foldingPolicy, new HashSet<SimpleNode>(),
                     new ArrayList<SimpleNode>());
         default:
             throw new IllegalStateException("Routing for policy "
@@ -678,8 +679,8 @@ public class SimpleNode {
             final int nLookAhead, final boolean backtracking,
             final boolean newFoldingMethod, final PeerSelector peerSelector,
             final FoldingPolicy foldingPolicy,
-            final ArrayList<SimpleNode> visitedChain,
-            final ArrayList<SimpleNode> returnChain) {
+            final Set<SimpleNode> visitedSet,
+            final ArrayList<SimpleNode> routingPath) {
         if (hopsToLive <= 0)
             throw new IllegalStateException(
                     "hopsToLive must be positive. It is " + hopsToLive);
@@ -687,8 +688,8 @@ public class SimpleNode {
         if (backtracking)
             setLastRouted(requestID);
 
-        if (!visitedChain.contains(this)) {
-            visitedChain.add(this);
+        if (!visitedSet.contains(this)) {
+            visitedSet.add(this);
         }
 
         /*
@@ -696,31 +697,30 @@ public class SimpleNode {
          * from among node locations.
          */
         if (this.getLocation() == target) {
-            returnChain.add(this);
-            return new RouteResult(true, success(returnChain, foldingPolicy,
-                    newFoldingMethod), returnChain.size(), visitedChain.size());
+            routingPath.add(this);
+            return new RouteResult(true, success(routingPath, foldingPolicy,
+                    newFoldingMethod), routingPath, visitedSet.size());
         }
 
         // Find node next node to route to.
-        final SimpleNode next = peerSelector.selectPeer(target, this,
-                visitedChain, nLookAhead);
+        final SimpleNode next = peerSelector.selectPeer(target, this, nLookAhead);
 
         // Nowhere is closer or available, and this node is not the target one.
         if (next == this)
-            return new RouteResult(visitedChain.size());
+            return new RouteResult(visitedSet.size());
 
         // TODO: Probabilistic decrement
         hopsToLive--;
 
-        returnChain.add(this);
+        routingPath.add(this);
 
-        final int pathLength = visitedChain.size();
+        final int pathLength = visitedSet.size();
         if (hopsToLive == 0) {
-            return new RouteResult(visitedChain.size());
+            return new RouteResult(visitedSet.size());
         } else {
             final RouteResult result = next.greedyRoute(target, hopsToLive,
                     nLookAhead, backtracking, newFoldingMethod, peerSelector,
-                    foldingPolicy, visitedChain, returnChain);
+                    foldingPolicy, visitedSet, routingPath);
             // If the routing did not succeed and did not use all remaining
             // hops, backtrack if enabled.
             final int additionalHops = (result.getTravelLength() - 1)
@@ -729,10 +729,10 @@ public class SimpleNode {
                     && additionalHops < hopsToLive) {
 
                 // remove this from the return routing list
-                returnChain.remove(this);
+                routingPath.remove(this);
                 return this.greedyRoute(target, hopsToLive - additionalHops,
                         nLookAhead, backtracking, newFoldingMethod,
-                        peerSelector, foldingPolicy, visitedChain, returnChain);
+                        peerSelector, foldingPolicy, visitedSet, routingPath);
             } else {
                 return result;
             }

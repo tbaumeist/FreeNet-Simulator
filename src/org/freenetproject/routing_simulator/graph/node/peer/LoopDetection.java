@@ -16,7 +16,7 @@ public class LoopDetection extends PeerSelector {
 
     @Override
     public SimpleNode selectPeer(final double target, final SimpleNode from,
-            final ArrayList<SimpleNode> chain, final int nLookAhead) {
+            final int nLookAhead) {
         SimpleNode next = from;
         // final double closest = from.distanceToLoc(target);
         ArrayList<DistanceEntry> distances = getDistances(from, target,

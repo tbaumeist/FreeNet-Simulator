@@ -1,6 +1,10 @@
 package org.freenetproject.routing_simulator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.freenetproject.routing_simulator.graph.folding.PathFoldingResult;
+import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 
 /**
  * Gives details on the results of routing a request.
@@ -16,10 +20,9 @@ public class RouteResult {
      */
     private final boolean success;
     /**
-     * The length of the path taken, valid if and only if routing was
-     * successful.
+     * The routing path taken.
      */
-    private final int pathLength;
+    private final List<SimpleNode> routingPath;
     /**
      * The the total path length taken including any back tracking.
      */
@@ -28,13 +31,12 @@ public class RouteResult {
     /**
      * Construct a new routing result for a failed routing attempt.
      * 
-     * @param success
-     *            Was routing successful.
      * @param pathLength
      *            Length of the path.
      */
     public RouteResult(final int pathLength) {
-        this(false, new PathFoldingResult(), pathLength, pathLength);
+        this(false, new PathFoldingResult(), new ArrayList<SimpleNode>(),
+                pathLength);
     }
 
     /**
@@ -48,11 +50,11 @@ public class RouteResult {
      *            Length of the path.
      */
     public RouteResult(final boolean success,
-            final PathFoldingResult foldingResult, final int pathLength,
-            final int traveledLength) {
+            final PathFoldingResult foldingResult,
+            final List<SimpleNode> routingPath, final int traveledLength) {
         this.success = success;
         this.foldingResult = foldingResult;
-        this.pathLength = pathLength;
+        this.routingPath = routingPath;
         this.traveledLength = traveledLength;
     }
 
@@ -74,7 +76,11 @@ public class RouteResult {
      * @return the path length
      */
     public final int getPathLength() {
-        return pathLength;
+        return this.routingPath.size();
+    }
+
+    public final List<SimpleNode> getRoutingPath() {
+        return this.routingPath;
     }
 
     /**

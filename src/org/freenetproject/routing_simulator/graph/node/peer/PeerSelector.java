@@ -10,8 +10,7 @@ import org.freenetproject.routing_simulator.util.DistanceEntry;
 
 public abstract class PeerSelector {
     public abstract SimpleNode selectPeer(final double target,
-            final SimpleNode from, final ArrayList<SimpleNode> chain,
-            final int nLookAhead);
+            final SimpleNode from, final int nLookAhead);
 
     protected ArrayList<DistanceEntry> getDistances(SimpleNode node,
             final double target, final int nLookAhead) {

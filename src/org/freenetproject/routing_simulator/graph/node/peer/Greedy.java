@@ -8,7 +8,7 @@ import org.freenetproject.routing_simulator.util.DistanceEntry;
 public class Greedy extends PeerSelector {
     @Override
     public SimpleNode selectPeer(double target, SimpleNode from,
-            ArrayList<SimpleNode> chain, final int nLookAhead) {
+            final int nLookAhead) {
         SimpleNode next = from;
         final double closest = from.distanceToLoc(target);
         ArrayList<DistanceEntry> distances = getDistances(from, target,

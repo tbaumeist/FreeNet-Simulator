@@ -13,8 +13,8 @@ public class PrecisionLoss extends LoopDetection {
 
     public PrecisionLoss(final FoldingPolicy policy,
             final RandomGenerator random, final double randomRoutingChance,
-            long requestId, double precisionLoss) {
-        super(policy, random, randomRoutingChance, requestId);
+            final int nLookBack, long requestId, double precisionLoss) {
+        super(policy, random, randomRoutingChance, nLookBack, requestId);
         this.precisionLoss = precisionLoss;
     }
 

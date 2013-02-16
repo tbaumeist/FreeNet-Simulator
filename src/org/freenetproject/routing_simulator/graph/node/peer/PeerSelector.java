@@ -25,7 +25,8 @@ public abstract class PeerSelector {
     }
 
     public abstract SimpleNode selectPeer(final double target,
-            final SimpleNode from, final int nLookAhead);
+            final SimpleNode from, final int nLookAhead,
+            final List<SimpleNode> currentPath);
 
     protected ArrayList<DistanceEntry> getDistances(SimpleNode node,
             final double target, final int nLookAhead) {
@@ -52,12 +53,11 @@ public abstract class PeerSelector {
         return peers;
     }
 
-    protected void sortDistanceList(List<DistanceEntry> nodes ) {
+    protected void sortDistanceList(List<DistanceEntry> nodes) {
         double dice = this.random.nextDouble();
-        if( dice < this.randomRoutingChance ) {
+        if (dice < this.randomRoutingChance) {
             Collections.shuffle(nodes);
-        }
-        else {
+        } else {
             Collections.sort(nodes);
         }
     }

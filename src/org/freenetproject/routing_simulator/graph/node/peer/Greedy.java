@@ -1,6 +1,7 @@
 package org.freenetproject.routing_simulator.graph.node.peer;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.math3.random.RandomGenerator;
 import org.freenetproject.routing_simulator.FoldingPolicy;
@@ -16,7 +17,8 @@ public class Greedy extends PeerSelector {
 
     @Override
     public SimpleNode selectPeer(double target, SimpleNode from,
-            final int nLookAhead) {
+            final int nLookAhead, final List<SimpleNode> currentPath) {
+        
         SimpleNode next = from;
         final double closest = from.distanceToLoc(target);
         ArrayList<DistanceEntry> distances = getDistances(from, target,

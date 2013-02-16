@@ -17,20 +17,16 @@ import test.org.freenetproject.routing_simulator.Test_Helper;
 
 public class Test_Routing {
 
-    @Test
-    public void largeRouting() throws Exception {
-        File tmp = File.createTempFile("Freenet", "test");
-        String tmpPath = tmp.getParent() + File.separator;
-        tmp.delete();
-        System.out.println("Writing files to " + tmpPath);
-        String[] args = new String[] { "--link-ideal", "--degree-fixed", "5",
-                "--graph-size", "1000", "--route", "144000", "--route-hops",
-                "18", "--route-bootstrap", "--route-output",
-                tmpPath + "route.dat", "--graph-save", tmpPath + "graph.g",
-                "--log-level", "detailed" };
-        new RoutingSim().run(Arguments.parse(args));
-        assertTrue(true);
-    }
+    // @Test
+    // public void tmpCreate() throws Exception {
+    // File dotFile = new File(Test_Helper.getResourcePath("1000node.dot"));
+    // String[] args = new String[] { "--route", "144000", "--route-hops",
+    // "100", "--route-bootstrap", "--route-fold-policy", "NONE",
+    // "--graph-load-dot", dotFile.getAbsolutePath(),
+    // "--log-level", "detailed" };
+    // new RoutingSim().run(Arguments.parse(args));
+    // assertTrue(true);
+    // }
 
     @Test
     public void visitedLength() throws Exception {
@@ -45,8 +41,9 @@ public class Test_Routing {
         assertTrue(nodeC.getLocation() == 0.3);
 
         int maxHTL = 6;
-        RouteResult result = nodeA.route(nodeC, maxHTL,
-                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, true, 0, 0);
+        RouteResult result = nodeA.route(nodeC, maxHTL, maxHTL,
+                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, -1, true, 0,
+                0);
         // should take the path 0.1 > 0.5 > 0.2 > 0.7 < 0.2 < 0.5 < 0.1 > 0.6 >
         // 0.3
         // > means routed to new node
@@ -61,14 +58,14 @@ public class Test_Routing {
         SimpleNode nodeH = graph.getNode(7);
         assertTrue(nodeH.getLocation() == 0.8);
         maxHTL = 7;
-        result = nodeA.route(nodeH, maxHTL, RoutingPolicy.BACKTRACKING,
-                FoldingPolicy.NONE, 1, true, 0, 0);
+        result = nodeA.route(nodeH, maxHTL, maxHTL, RoutingPolicy.BACKTRACKING,
+                FoldingPolicy.NONE, 1, -1, true, 0, 0);
         assertTrue(!result.isSuccess());
         assertTrue(result.getTravelLength() == maxHTL);
 
         maxHTL = 8;
-        result = nodeA.route(nodeH, maxHTL, RoutingPolicy.BACKTRACKING,
-                FoldingPolicy.NONE, 1, true, 0, 0);
+        result = nodeA.route(nodeH, maxHTL, maxHTL, RoutingPolicy.BACKTRACKING,
+                FoldingPolicy.NONE, 1, -1, true, 0, 0);
         // path .1 > .7 > .2 > .5 < .2 < .7 < .1 > .6 > .4 > .9 > .8
         assertTrue(result.isSuccess());
         assertTrue(result.getTravelLength() == 8);
@@ -80,8 +77,8 @@ public class Test_Routing {
         assertTrue(result.getRoutingPath().get(4).getLocation() == 0.8);
 
         // look ahead of 2
-        result = nodeA.route(nodeH, maxHTL, RoutingPolicy.BACKTRACKING,
-                FoldingPolicy.NONE, 2, true, 0, 0);
+        result = nodeA.route(nodeH, maxHTL, maxHTL, RoutingPolicy.BACKTRACKING,
+                FoldingPolicy.NONE, 2, -1, true, 0, 0);
         // path .1 > .7 > .2 > .5 < .2 < .7 < .1 > .6 > .3 > .8
         assertTrue(result.isSuccess());
         assertTrue(result.getTravelLength() == 7);
@@ -92,8 +89,8 @@ public class Test_Routing {
         assertTrue(result.getRoutingPath().get(3).getLocation() == 0.8);
 
         // look ahead of 3
-        result = nodeA.route(nodeH, maxHTL, RoutingPolicy.BACKTRACKING,
-                FoldingPolicy.NONE, 3, true, 0, 0);
+        result = nodeA.route(nodeH, maxHTL, maxHTL, RoutingPolicy.BACKTRACKING,
+                FoldingPolicy.NONE, 3, -1, true, 0, 0);
         // path .1 > .6 > .3 > .8
         assertTrue(result.isSuccess());
         assertTrue(result.getTravelLength() == 4);
@@ -117,8 +114,9 @@ public class Test_Routing {
         assertTrue(node100.getLocation() == 0.10630535558247556);
 
         int maxHTL = 100;
-        RouteResult result = node450.route(node100, maxHTL,
-                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, true, 0, 0);
+        RouteResult result = node450.route(node100, maxHTL, maxHTL,
+                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, -1, true, 0,
+                0);
 
         assertTrue(result.isSuccess());
         assertTrue(result.getPathLength() == 10);
@@ -136,8 +134,9 @@ public class Test_Routing {
 
         SimpleNode node360 = graph.getNode(360);
         SimpleNode node502 = graph.getNode(502);
-        result = node360.route(node502, maxHTL, RoutingPolicy.BACKTRACKING,
-                FoldingPolicy.NONE, 3, true, 0, 0);
+        result = node360.route(node502, maxHTL, maxHTL,
+                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 3, -1, true, 0,
+                0);
 
         // [0.34909057502529417 360, 0.1275526370640896 124,
         // 0.4995312306777413 505, 0.4982720129903906 502]
@@ -149,8 +148,9 @@ public class Test_Routing {
         assertTrue(result.getRoutingPath().get(2).index == 505);
         assertTrue(result.getRoutingPath().get(3).index == 502);
 
-        result = node360.route(node502, maxHTL, RoutingPolicy.PRECISION_LOSS,
-                FoldingPolicy.NONE, 3, true, 0.5, 0);
+        result = node360.route(node502, maxHTL, maxHTL,
+                RoutingPolicy.PRECISION_LOSS, FoldingPolicy.NONE, 3, -1, true,
+                0.5, 0);
 
         // [0.34909057502529417 360, 0.3475538408373877 357, 0.5904869687046594
         // 592, 0.4983054732855732 503, 0.4982720129903906 502]
@@ -160,6 +160,38 @@ public class Test_Routing {
         assertTrue(result.isSuccess());
         assertTrue(result.getPathLength() == 5);
         assertTrue(result.getTravelLength() == 5);
+    }
+
+    @Test
+    public void routingPathLargeNetworkLoopDetection() throws Exception {
+        File dotFile = new File(Test_Helper.getResourcePath("1000node.dot"));
+        final Graph graph = Test_Helper.readFromFileDot(dotFile);
+
+        SimpleNode node723 = graph.getNode(723);
+        SimpleNode node30 = graph.getNode(30);
+
+        assertTrue(node723.getLocation() == 0.716706175361203);
+        assertTrue(node30.getLocation() == 0.03576079128113796);
+
+        int maxHTL = 30;
+        RouteResult result = node723.route(node30, maxHTL, maxHTL,
+                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, -1, true, 0,
+                0);
+
+        assertTrue(result.isSuccess());
+        assertTrue(result.getPathLength() == 27);
+        assertTrue(result.getTravelLength() == 27);
+
+        result = node723.route(node30, maxHTL, maxHTL, RoutingPolicy.GREEDY,
+                FoldingPolicy.NONE, 1, -1, true, 0, 0);
+
+        assertTrue(!result.isSuccess());
+
+        result = node723.route(node30, maxHTL, maxHTL,
+                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, 1, true, 0,
+                0);
+
+        assertTrue(result.isSuccess());
     }
 
     @Test
@@ -174,8 +206,9 @@ public class Test_Routing {
         assertTrue(nodeB.getLocation() == 0.9131614916580988);
 
         int maxHTL = 100;
-        RouteResult result = nodeA.route(nodeB, maxHTL,
-                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, true, 0, 0);
+        RouteResult result = nodeA.route(nodeB, maxHTL, maxHTL,
+                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, -1, true, 0,
+                0);
 
         // [0.4136244989486966 5, 0.474119841114474 8, 0.5860513580630204 9,
         // 0.6457999139358759 12, 0.6687893921306722 13, 0.7589678048955022 14,
@@ -196,8 +229,8 @@ public class Test_Routing {
         assertTrue(result.getRoutingPath().get(8).index == 17);
         assertTrue(result.getRoutingPath().get(9).index == 18);
 
-        result = nodeA.route(nodeB, maxHTL, RoutingPolicy.BACKTRACKING,
-                FoldingPolicy.NONE, 2, true, 0, 0);
+        result = nodeA.route(nodeB, maxHTL, maxHTL, RoutingPolicy.BACKTRACKING,
+                FoldingPolicy.NONE, 2, -1, true, 0, 0);
 
         // [0.4136244989486966 5, 0.4615541189612562 6, 0.9410194257801392 19,
         // 0.9131614916580988 18]
@@ -210,8 +243,8 @@ public class Test_Routing {
         assertTrue(result.getRoutingPath().get(2).index == 19);
         assertTrue(result.getRoutingPath().get(3).index == 18);
 
-        result = nodeA.route(nodeB, maxHTL, RoutingPolicy.BACKTRACKING,
-                FoldingPolicy.NONE, 3, true, 0, 0);
+        result = nodeA.route(nodeB, maxHTL, maxHTL, RoutingPolicy.BACKTRACKING,
+                FoldingPolicy.NONE, 3, -1, true, 0, 0);
 
         // [0.4136244989486966 5, 0.4615541189612562 6, 0.9410194257801392 19,
         // 0.9131614916580988 18]
@@ -237,9 +270,9 @@ public class Test_Routing {
         assertTrue(nodeB.getLocation() == 0.9131614916580988);
 
         int maxHTL = 100;
-        RouteResult result = nodeA.route(nodeB, maxHTL,
-                RoutingPolicy.PRECISION_LOSS, FoldingPolicy.NONE, 1, true, 0.5,
-                0);
+        RouteResult result = nodeA.route(nodeB, maxHTL, maxHTL,
+                RoutingPolicy.PRECISION_LOSS, FoldingPolicy.NONE, 1, -1, true,
+                0.5, 0);
 
         // [0.4136244989486966 5, 0.474119841114474 8, 0.5860513580630204 9,
         // 0.6457999139358759 12, 0.6687893921306722 13, 0.7589678048955022 14,
@@ -260,8 +293,9 @@ public class Test_Routing {
         assertTrue(result.getRoutingPath().get(8).index == 17);
         assertTrue(result.getRoutingPath().get(9).index == 18);
 
-        result = nodeA.route(nodeB, maxHTL, RoutingPolicy.PRECISION_LOSS,
-                FoldingPolicy.NONE, 2, true, 0.5, 0);
+        result = nodeA.route(nodeB, maxHTL, maxHTL,
+                RoutingPolicy.PRECISION_LOSS, FoldingPolicy.NONE, 2, -1, true,
+                0.5, 0);
 
         // [0.4136244989486966 5, 0.4615541189612562 6, 0.9410194257801392 19,
         // 0.9131614916580988 18]
@@ -274,8 +308,9 @@ public class Test_Routing {
         assertTrue(result.getRoutingPath().get(2).index == 19);
         assertTrue(result.getRoutingPath().get(3).index == 18);
 
-        result = nodeA.route(nodeB, maxHTL, RoutingPolicy.PRECISION_LOSS,
-                FoldingPolicy.NONE, 3, true, 0.5, 0);
+        result = nodeA.route(nodeB, maxHTL, maxHTL,
+                RoutingPolicy.PRECISION_LOSS, FoldingPolicy.NONE, 3, -1, true,
+                0.5, 0);
 
         // [0.4136244989486966 5, 0.4615541189612562 6, 0.9410194257801392 19,
         // 0.9131614916580988 18]
@@ -302,12 +337,14 @@ public class Test_Routing {
 
         int maxHTL = 100;
         // 25% chance to randomly route
-        RouteResult resultA = node450.route(node100, maxHTL,
-                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, true, 0, 0.25);
-        
-        RouteResult resultB = node450.route(node100, maxHTL,
-                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, true, 0, 0.25);
-        
+        RouteResult resultA = node450.route(node100, maxHTL, maxHTL,
+                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, -1, true, 0,
+                0.25);
+
+        RouteResult resultB = node450.route(node100, maxHTL, maxHTL,
+                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, -1, true, 0,
+                0.25);
+
         assertTrue(resultA.isSuccess());
         assertTrue(resultB.isSuccess());
         assertTrue(resultA.getPathLength() != resultB.getPathLength());

@@ -110,6 +110,10 @@ public final class Arguments {
      */
     public final int nLookAhead;
     /**
+     * Number of loop back hops to use to find loops. Negative means all hops.
+     */
+    public final int lookBack;
+    /**
      * Type of graph to generate.
      */
     public final GraphGenerator graphGenerator;
@@ -328,6 +332,9 @@ public final class Arguments {
             "route-random-chance",
             true,
             "The probability any given node will randomly route instead of using the default routing algorithm.");
+    private static final Option OPT_ROUTE_LOOK_BACK = new Option("rlb",
+            "route-look-back", true,
+            "The number of hops to look back for loop detection. Negative means all hops.");
 
     /*
      * Probing options
@@ -353,7 +360,7 @@ public final class Arguments {
             final boolean runRoute, final boolean excludeLattice,
             final boolean bootstrap, final int seed, final int networkSize,
             final int shortcuts, final int maxHopsProbe,
-            final int maxHopsRequest, final int nRequests,
+            final int maxHopsRequest, final int nRequests, final int lookBack,
             final double precisionLoss, final double routeRandomChance,
             final GraphGenerator graphGenerator,
             final DataInputStream degreeInput, final DataInputStream linkInput,
@@ -380,6 +387,7 @@ public final class Arguments {
         this.maxHopsProbe = maxHopsProbe;
         this.maxHopsRoute = maxHopsRequest;
         this.nRouteRequests = nRequests;
+        this.lookBack = lookBack;
         this.lookAheadPrecisionLoss = precisionLoss;
         this.routingRandomChance = routeRandomChance;
         this.graphGenerator = graphGenerator;
@@ -543,6 +551,7 @@ public final class Arguments {
         options.addOption(OPT_ROUTE_BOOTSTRAP);
         options.addOption(OPT_ROUTE_LOOK_PREC);
         options.addOption(OPT_ROUTE_RANDOM_CHANCE);
+        options.addOption(OPT_ROUTE_LOOK_BACK);
 
         // Simulations: Probe distribution
         options.addOption(OPT_PROBE);
@@ -738,20 +747,27 @@ public final class Arguments {
         } else {
             routingPolicy = ROUTING_DEFAULT;
         }
-        
-        if( routingPolicy == RoutingPolicy.PRECISION_LOSS &&
-                !cmd.hasOption(OPT_ROUTE_LOOK_PREC.getLongOpt())) {
-            LOGGER.severe(routingPolicy.name()
-                    + " was specified, but not --"
+
+        if (routingPolicy == RoutingPolicy.PRECISION_LOSS
+                && !cmd.hasOption(OPT_ROUTE_LOOK_PREC.getLongOpt())) {
+            LOGGER.severe(routingPolicy.name() + " was specified, but not --"
                     + OPT_ROUTE_LOOK_PREC.getLongOpt() + ".");
             return null;
         }
-        
-        if( routingPolicy != RoutingPolicy.PRECISION_LOSS &&
-                cmd.hasOption(OPT_ROUTE_LOOK_PREC.getLongOpt())) {
+
+        if (routingPolicy != RoutingPolicy.PRECISION_LOSS
+                && cmd.hasOption(OPT_ROUTE_LOOK_PREC.getLongOpt())) {
             LOGGER.severe(OPT_ROUTE_LOOK_PREC.getLongOpt()
-                    + " was specified, but not the routing policy "+
-                    RoutingPolicy.PRECISION_LOSS.name()+".");
+                    + " was specified, but not the routing policy "
+                    + RoutingPolicy.PRECISION_LOSS.name() + ".");
+            return null;
+        }
+        
+        if (routingPolicy == RoutingPolicy.GREEDY
+                && cmd.hasOption(OPT_ROUTE_LOOK_BACK.getLongOpt())) {
+            LOGGER.severe(OPT_ROUTE_LOOK_BACK.getLongOpt()
+                    + " can not be specified with the routing policy "
+                    + RoutingPolicy.GREEDY.name() + ".");
             return null;
         }
 
@@ -818,6 +834,9 @@ public final class Arguments {
         final int nLookAhead = cmd.hasOption(OPT_ROUTE_LOOK_AHEAD.getLongOpt()) ? Integer
                 .valueOf(cmd.getOptionValue(OPT_ROUTE_LOOK_AHEAD.getLongOpt()))
                 : 1;
+        final int nLookBack = cmd.hasOption(OPT_ROUTE_LOOK_BACK.getLongOpt()) ? Integer
+                .valueOf(cmd.getOptionValue(OPT_ROUTE_LOOK_BACK.getLongOpt()))
+                : -1;
         final double precisionLoss = cmd.hasOption(OPT_ROUTE_LOOK_PREC
                 .getLongOpt()) ? Double.valueOf(cmd
                 .getOptionValue(OPT_ROUTE_LOOK_PREC.getLongOpt())) : 0;
@@ -834,9 +853,9 @@ public final class Arguments {
                 cmd.hasOption(OPT_LINK_EXCLUDE_LATTICE.getLongOpt()),
                 cmd.hasOption(OPT_ROUTE_BOOTSTRAP.getLongOpt()), seed,
                 networkSize, shortcuts, maxHopsProbe, maxHopsRequest,
-                nRequests, precisionLoss, randomRouteChance, graphGenerator,
-                degreeInput, linkInput, graphInput, degreeOutput, linkOutput,
-                graphOutput, graphOutputText,
+                nRequests, nLookBack, precisionLoss, randomRouteChance,
+                graphGenerator, degreeInput, linkInput, graphInput,
+                degreeOutput, linkOutput, graphOutput, graphOutputText,
                 cmd.getOptionValue(OPT_PROBE_OUTPUT.getLongOpt()),
                 routingSimOutput, foldingPolicy, routingPolicy, nLookAhead,
                 logLevel, pause, scriptOutput, oldPathFolding, cmd);

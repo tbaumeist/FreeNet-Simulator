@@ -638,10 +638,10 @@ public class SimpleNode {
      * 
      */
     public RouteResult route(final SimpleNode target, final int hopsToLive,
-            final RoutingPolicy routingPolicy,
+            final int maxHTL, final RoutingPolicy routingPolicy,
             final FoldingPolicy foldingPolicy, final int nLookAhead,
-            final boolean newFoldingMethod, final double precisionLoss,
-            final double randomRoutingChance) {
+            final int nLookBack, final boolean newFoldingMethod,
+            final double precisionLoss, final double randomRoutingChance) {
         /*
          * NOTE: This is static and package-local: not thread-safe! The
          * simulator is as of this writing strictly single-threaded. The request
@@ -652,33 +652,47 @@ public class SimpleNode {
         // chain and target.
         switch (routingPolicy) {
         case GREEDY:
-            return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
-                    false, newFoldingMethod,
-                    new Greedy(foldingPolicy, this.getRandom(),
+            return greedyRoute(target.getLocation(), hopsToLive, maxHTL,
+                    nLookAhead, false, newFoldingMethod, new Greedy(
+                            foldingPolicy, this.getRandom(),
                             randomRoutingChance), foldingPolicy,
-                    new HashSet<SimpleNode>(), new ArrayList<SimpleNode>());
+                    new ArrayList<SimpleNode>());
         case LOOP_DETECTION:
-            return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
-                    false, newFoldingMethod, new LoopDetection(foldingPolicy,
-                            this.getRandom(), randomRoutingChance, requestID),
-                    foldingPolicy, new HashSet<SimpleNode>(),
-                    new ArrayList<SimpleNode>());
+            return greedyRoute(target.getLocation(), hopsToLive, maxHTL,
+                    nLookAhead, false, newFoldingMethod, new LoopDetection(
+                            foldingPolicy, this.getRandom(),
+                            randomRoutingChance, nLookBack, requestID),
+                    foldingPolicy, new ArrayList<SimpleNode>());
         case BACKTRACKING:
-            return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
-                    true, newFoldingMethod, new LoopDetection(foldingPolicy,
-                            this.getRandom(), randomRoutingChance, requestID),
-                    foldingPolicy, new HashSet<SimpleNode>(),
-                    new ArrayList<SimpleNode>());
+            return greedyRoute(target.getLocation(), hopsToLive, maxHTL,
+                    nLookAhead, true, newFoldingMethod, new LoopDetection(
+                            foldingPolicy, this.getRandom(),
+                            randomRoutingChance, nLookBack, requestID),
+                    foldingPolicy, new ArrayList<SimpleNode>());
         case PRECISION_LOSS:
-            return greedyRoute(target.getLocation(), hopsToLive, nLookAhead,
-                    true, newFoldingMethod, new PrecisionLoss(foldingPolicy,
-                            this.getRandom(), randomRoutingChance, requestID,
+            return greedyRoute(target.getLocation(), hopsToLive, maxHTL,
+                    nLookAhead, true, newFoldingMethod, new PrecisionLoss(
+                            foldingPolicy, this.getRandom(),
+                            randomRoutingChance, nLookBack, requestID,
                             precisionLoss), foldingPolicy,
-                    new HashSet<SimpleNode>(), new ArrayList<SimpleNode>());
+                    new ArrayList<SimpleNode>());
         default:
             throw new IllegalStateException("Routing for policy "
                     + routingPolicy.name() + " not implemented.");
         }
+    }
+    
+    /*
+     * Changed: This was only returning a failed routing status if it hit a
+     * local minimum. If hops ran out it was still considered a success. Changes
+     * this so if hops runs out the routing failed (if it didn't reach target).
+     */
+    private RouteResult greedyRoute(final double target, int hopsToLive,
+            final int maxHTL, final int nLookAhead, final boolean backtracking,
+            final boolean newFoldingMethod, final PeerSelector peerSelector,
+            final FoldingPolicy foldingPolicy,
+            final ArrayList<SimpleNode> routingPath) {
+        return null;
     }
 
     /*
@@ -686,11 +700,10 @@ public class SimpleNode {
      * local minimum. If hops ran out it was still considered a success. Changes
      * this so if hops runs out the routing failed (if it didn't reach target).
      */
-    private RouteResult greedyRoute(final double target, int hopsToLive,
-            final int nLookAhead, final boolean backtracking,
+    private RouteResult greedyRoute2(final double target, int hopsToLive,
+            final int maxHTL, final int nLookAhead, final boolean backtracking,
             final boolean newFoldingMethod, final PeerSelector peerSelector,
             final FoldingPolicy foldingPolicy,
-            final Set<SimpleNode> visitedSet,
             final ArrayList<SimpleNode> routingPath) {
         if (hopsToLive <= 0)
             throw new IllegalStateException(
@@ -699,52 +712,51 @@ public class SimpleNode {
         if (backtracking)
             setLastRouted(requestID);
 
-        if (!visitedSet.contains(this)) {
-            visitedSet.add(this);
-        }
+        routingPath.add(this);
 
         /*
          * Check whether the request reached its destination, which was selected
          * from among node locations.
          */
         if (this.getLocation() == target) {
-            routingPath.add(this);
             return new RouteResult(true, success(routingPath, foldingPolicy,
-                    newFoldingMethod), routingPath, visitedSet.size());
+                    newFoldingMethod), routingPath, maxHTL - hopsToLive - 1);
         }
 
         // Find node next node to route to.
         final SimpleNode next = peerSelector.selectPeer(target, this,
-                nLookAhead);
+                nLookAhead, routingPath);
 
         // Nowhere is closer or available, and this node is not the target one.
-        if (next == this)
-            return new RouteResult(visitedSet.size());
+        if (next == this) {
+            routingPath.remove(this);
+            return new RouteResult(maxHTL - hopsToLive);
+        }
 
         // TODO: Probabilistic decrement
         hopsToLive--;
 
-        routingPath.add(this);
+        // ...ahhhh this is broken
+        // 0.1 > 0.5 > 0.2 > 0.7 < 0.2 < 0.5 < 0.1 > 0.6 > 0.3
+        // 9 8 7 6 6 6 6 5 4
+        // 5 4 3 2 2 2 2 2 1
 
-        final int pathLength = visitedSet.size();
         if (hopsToLive == 0) {
-            return new RouteResult(visitedSet.size());
+            return new RouteResult(maxHTL);
         } else {
             final RouteResult result = next.greedyRoute(target, hopsToLive,
-                    nLookAhead, backtracking, newFoldingMethod, peerSelector,
-                    foldingPolicy, visitedSet, routingPath);
+                    maxHTL, nLookAhead, backtracking, newFoldingMethod,
+                    peerSelector, foldingPolicy, routingPath);
             // If the routing did not succeed and did not use all remaining
             // hops, backtrack if enabled.
-            final int additionalHops = (result.getTravelLength() - 1)
-                    - pathLength;
-            if (backtracking && !result.isSuccess()
-                    && additionalHops < hopsToLive) {
+            final int newHops = maxHTL - result.getTravelLength();
+            if (backtracking && !result.isSuccess() && newHops > 0) {
 
                 // remove this from the return routing list
                 routingPath.remove(this);
-                return this.greedyRoute(target, hopsToLive - additionalHops,
-                        nLookAhead, backtracking, newFoldingMethod,
-                        peerSelector, foldingPolicy, visitedSet, routingPath);
+                return this.greedyRoute(target, newHops, maxHTL, nLookAhead,
+                        backtracking, newFoldingMethod, peerSelector,
+                        foldingPolicy, routingPath);
             } else {
                 return result;
             }

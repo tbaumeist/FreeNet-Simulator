@@ -347,6 +347,7 @@ public final class RoutingSim {
         final RoutingPolicy routingPolicy = arguments.routingPolicy;
         final FoldingPolicy foldingPolicy = arguments.foldingPolicy;
         final int nLookAhead = arguments.nLookAhead;
+        final int nLookBack = arguments.lookBack;
         final boolean newFoldingMethod = !arguments.oldPathFolding;
         final boolean bootstrap = arguments.bootstrap;
         final OutputStream outputRoute = arguments.routingSimOutput;
@@ -375,8 +376,8 @@ public final class RoutingSim {
              */
             final SimpleNode destination = graph.getNode(rand.nextInt(graph
                     .size()));
-            final RouteResult result = origin.route(destination, maxHTL,
-                    routingPolicy, foldingPolicy, nLookAhead, newFoldingMethod,
+            final RouteResult result = origin.route(destination, maxHTL, maxHTL,
+                    routingPolicy, foldingPolicy, nLookAhead, nLookBack, newFoldingMethod,
                     precisionLoss, randomRoutingChance);
 
             experiment.record(result.isSuccess(), result.getPathLength(),

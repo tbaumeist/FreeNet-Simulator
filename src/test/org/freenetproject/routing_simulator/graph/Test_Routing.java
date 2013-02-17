@@ -190,7 +190,16 @@ public class Test_Routing {
         result = node723.route(node30, maxHTL, maxHTL,
                 RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, 1, true, 0,
                 0);
-
+        assertTrue(!result.isSuccess());
+        
+        result = node723.route(node30, maxHTL, maxHTL,
+                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, 9, true, 0,
+                0);
+        assertTrue(!result.isSuccess());
+        
+        result = node723.route(node30, maxHTL, maxHTL,
+                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, 10, true, 0,
+                0);
         assertTrue(result.isSuccess());
     }
 

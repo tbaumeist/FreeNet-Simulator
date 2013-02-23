@@ -13,13 +13,13 @@ import org.freenetproject.routing_simulator.graph.Graph;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.junit.Test;
 
-import test.org.freenetproject.routing_simulator.Test_Helper;
+import test.org.freenetproject.routing_simulator.TestingHelper;
 
 public class Test_Routing {
 
     // @Test
     // public void tmpCreate() throws Exception {
-    // File dotFile = new File(Test_Helper.getResourcePath("1000node.dot"));
+    // File dotFile = new File(TestingHelper.getResourcePath("1000node.dot"));
     // String[] args = new String[] { "--route", "144000", "--route-hops",
     // "100", "--route-bootstrap", "--route-fold-policy", "NONE",
     // "--graph-load-dot", dotFile.getAbsolutePath(),
@@ -31,8 +31,8 @@ public class Test_Routing {
     @Test
     public void visitedLength() throws Exception {
         // special graph file that I already know certain properties about
-        File gmlFile = new File(Test_Helper.getResourcePath("gml-graph-1.gml"));
-        final Graph graph = Test_Helper.readFromFileGml(gmlFile);
+        File gmlFile = new File(TestingHelper.getResourcePath("gml-graph-1.gml"));
+        final Graph graph = TestingHelper.readFromFileGml(gmlFile);
 
         SimpleNode nodeA = graph.getNode(0);
         SimpleNode nodeC = graph.getNode(2);
@@ -104,8 +104,8 @@ public class Test_Routing {
 
     @Test
     public void routingPathLargeNetwork() throws Exception {
-        File dotFile = new File(Test_Helper.getResourcePath("1000node.dot"));
-        final Graph graph = Test_Helper.readFromFileDot(dotFile);
+        File dotFile = new File(TestingHelper.getResourcePath("1000node.dot"));
+        final Graph graph = TestingHelper.readFromFileDot(dotFile);
 
         SimpleNode node450 = graph.getNode(450);
         SimpleNode node100 = graph.getNode(100);
@@ -164,8 +164,8 @@ public class Test_Routing {
 
     @Test
     public void routingPathLargeNetworkLoopDetection() throws Exception {
-        File dotFile = new File(Test_Helper.getResourcePath("1000node.dot"));
-        final Graph graph = Test_Helper.readFromFileDot(dotFile);
+        File dotFile = new File(TestingHelper.getResourcePath("1000node.dot"));
+        final Graph graph = TestingHelper.readFromFileDot(dotFile);
 
         SimpleNode node723 = graph.getNode(723);
         SimpleNode node30 = graph.getNode(30);
@@ -190,14 +190,23 @@ public class Test_Routing {
         result = node723.route(node30, maxHTL, maxHTL,
                 RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, 1, true, 0,
                 0);
-
+        assertTrue(!result.isSuccess());
+        
+        result = node723.route(node30, maxHTL, maxHTL,
+                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, 9, true, 0,
+                0);
+        assertTrue(!result.isSuccess());
+        
+        result = node723.route(node30, maxHTL, maxHTL,
+                RoutingPolicy.BACKTRACKING, FoldingPolicy.NONE, 1, 10, true, 0,
+                0);
         assertTrue(result.isSuccess());
     }
 
     @Test
     public void routingPathSmallNetwork() throws Exception {
-        File dotFile = new File(Test_Helper.getResourcePath("20node.dot"));
-        final Graph graph = Test_Helper.readFromFileDot(dotFile);
+        File dotFile = new File(TestingHelper.getResourcePath("20node.dot"));
+        final Graph graph = TestingHelper.readFromFileDot(dotFile);
 
         SimpleNode nodeA = graph.getNode(5);
         SimpleNode nodeB = graph.getNode(18);
@@ -260,8 +269,8 @@ public class Test_Routing {
 
     @Test
     public void routingPathSmallNetworkPrecisionLoss() throws Exception {
-        File dotFile = new File(Test_Helper.getResourcePath("20node.dot"));
-        final Graph graph = Test_Helper.readFromFileDot(dotFile);
+        File dotFile = new File(TestingHelper.getResourcePath("20node.dot"));
+        final Graph graph = TestingHelper.readFromFileDot(dotFile);
 
         SimpleNode nodeA = graph.getNode(5);
         SimpleNode nodeB = graph.getNode(18);
@@ -326,8 +335,8 @@ public class Test_Routing {
 
     @Test
     public void randomRouting() throws Exception {
-        File dotFile = new File(Test_Helper.getResourcePath("1000node.dot"));
-        final Graph graph = Test_Helper.readFromFileDot(dotFile);
+        File dotFile = new File(TestingHelper.getResourcePath("1000node.dot"));
+        final Graph graph = TestingHelper.readFromFileDot(dotFile);
 
         SimpleNode node450 = graph.getNode(450);
         SimpleNode node100 = graph.getNode(100);

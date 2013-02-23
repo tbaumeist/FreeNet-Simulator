@@ -8,12 +8,13 @@ import org.freenetproject.routing_simulator.graph.Graph;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.junit.Test;
 
+import test.org.freenetproject.routing_simulator.TestingBase;
 import test.org.freenetproject.routing_simulator.graph.Test_Graph;
 
 /**
  * Tests node equality,
  */
-public class Test_Node {
+public class Test_Node extends TestingBase {
 
     @Test
     public void testEquality() {

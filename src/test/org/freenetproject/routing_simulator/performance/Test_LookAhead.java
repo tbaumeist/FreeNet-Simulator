@@ -1,16 +1,12 @@
 package test.org.freenetproject.routing_simulator.performance;
 
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.Date;
-
 import junit.framework.Assert;
 
-import org.freenetproject.routing_simulator.Arguments;
-import org.freenetproject.routing_simulator.RoutingSim;
 import org.junit.Test;
 
-public class Test_LookAhead {
+import test.org.freenetproject.routing_simulator.TestingBase;
+
+public class Test_LookAhead extends TestingBase {
 
     @Test
     public void benchMarkLookAhead() throws Exception {

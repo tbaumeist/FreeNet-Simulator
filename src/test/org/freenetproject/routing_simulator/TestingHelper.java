@@ -13,10 +13,10 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.freenetproject.routing_simulator.graph.Graph;
 
-public class Test_Helper {
+public class TestingHelper {
     private final static String resourcePath = "bin/test/org/freenetproject/routing_simulator/resources/";
 
-    private Test_Helper() {
+    private TestingHelper() {
     }
 
     public static String getResourcePath() {

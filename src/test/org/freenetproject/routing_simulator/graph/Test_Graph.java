@@ -10,7 +10,8 @@ import org.freenetproject.routing_simulator.graph.linklength.LinkLengthSource;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.junit.Test;
 
-import test.org.freenetproject.routing_simulator.Test_Helper;
+import test.org.freenetproject.routing_simulator.TestingBase;
+import test.org.freenetproject.routing_simulator.TestingHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 /**
  * Test graph generation, saving, and loading.
  */
-public class Test_Graph {
+public class Test_Graph extends TestingBase {
 
     private final File temporary;
 
@@ -32,7 +33,7 @@ public class Test_Graph {
      *         ideal Kleinberg link length distribution.
      */
     public static Graph generateKleinberg() {
-        final RandomGenerator random = Test_Helper.getRandom();
+        final RandomGenerator random = TestingHelper.getRandom();
         final ArrayList<SimpleNode> nodes = Graph.generateNodes(100, random,
                 false, new FixedDegreeSource(5));
         return Graph.connectGraph(nodes, random, new KleinbergLinkSource(
@@ -51,7 +52,7 @@ public class Test_Graph {
         // TODO: Having to do this seems strange. Would it be better if nodes
         // didn't have inherent desired degrees? Maybe a generateNodes which
         // didn't need a degree source?
-        final RandomGenerator random = Test_Helper.getRandom();
+        final RandomGenerator random = TestingHelper.getRandom();
         final ArrayList<SimpleNode> nodes = Graph.generateNodes(100, random,
                 false, new FixedDegreeSource(0));
         final LinkLengthSource linkLengthSource = new KleinbergLinkSource(
@@ -140,9 +141,9 @@ public class Test_Graph {
     public void saveLoad() throws Exception {
         // TODO: Write to memory instead of a temporary file.
         final Graph written = generateKleinberg();
-        Test_Helper.writeToFile(written, temporary);
+        TestingHelper.writeToFile(written, temporary);
 
-        final Graph read = Test_Helper.readFromFile(temporary);
+        final Graph read = TestingHelper.readFromFile(temporary);
 
         assertTrue( equal(written, read));
     }
@@ -150,9 +151,9 @@ public class Test_Graph {
     @Test
     public void saveLoadDot() throws Exception {
         final Graph written = generateKleinberg();
-        Test_Helper.writeToFileDot(written, temporary);
+        TestingHelper.writeToFileDot(written, temporary);
 
-        final Graph read = Test_Helper.readFromFileDot(temporary);
+        final Graph read = TestingHelper.readFromFileDot(temporary);
 
         assertTrue( equal(written, read));
     }
@@ -167,12 +168,12 @@ public class Test_Graph {
     @Test
     public void saveLoaded() throws Exception {
         final Graph original = generateKleinberg();
-        Test_Helper.writeToFile(original, temporary);
+        TestingHelper.writeToFile(original, temporary);
 
-        final Graph firstRead = Test_Helper.readFromFile(temporary);
-        Test_Helper.writeToFile(firstRead, temporary);
+        final Graph firstRead = TestingHelper.readFromFile(temporary);
+        TestingHelper.writeToFile(firstRead, temporary);
 
-        final Graph secondRead = Test_Helper.readFromFile(temporary);
+        final Graph secondRead = TestingHelper.readFromFile(temporary);
 
         assertTrue( equal(firstRead, secondRead));
     }
@@ -180,38 +181,38 @@ public class Test_Graph {
     @Test
     public void saveLoadedDot() throws Exception {
         final Graph original = generateKleinberg();
-        Test_Helper.writeToFileDot(original, temporary);
+        TestingHelper.writeToFileDot(original, temporary);
 
-        final Graph firstRead = Test_Helper.readFromFileDot(temporary);
-        Test_Helper.writeToFileDot(firstRead, temporary);
+        final Graph firstRead = TestingHelper.readFromFileDot(temporary);
+        TestingHelper.writeToFileDot(firstRead, temporary);
 
-        final Graph secondRead = Test_Helper.readFromFileDot(temporary);
+        final Graph secondRead = TestingHelper.readFromFileDot(temporary);
 
         assertTrue( equal(firstRead, secondRead));
     }
 
     @Test
     public void LoadGml() throws Exception {
-        File gmlFile = new File(Test_Helper.getResourcePath("gml-graph-1.gml"));
-        final Graph firstRead = Test_Helper.readFromFileGml(gmlFile);
+        File gmlFile = new File(TestingHelper.getResourcePath("gml-graph-1.gml"));
+        final Graph firstRead = TestingHelper.readFromFileGml(gmlFile);
 
-        File dotFile = new File(Test_Helper.getResourcePath("dot-graph-1.dot"));
-        final Graph secondRead = Test_Helper.readFromFileDot(dotFile);
+        File dotFile = new File(TestingHelper.getResourcePath("dot-graph-1.dot"));
+        final Graph secondRead = TestingHelper.readFromFileDot(dotFile);
 
         assertTrue( equal(firstRead, secondRead));
     }
 
     @Test
     public void LoadGmlSaveDot() throws Exception {
-        File gmlFile = new File(Test_Helper.getResourcePath("gml-graph-1.gml"));
-        final Graph firstRead = Test_Helper.readFromFileGml(gmlFile);
+        File gmlFile = new File(TestingHelper.getResourcePath("gml-graph-1.gml"));
+        final Graph firstRead = TestingHelper.readFromFileGml(gmlFile);
 
-        Test_Helper.writeToFileDot(firstRead, temporary);
+        TestingHelper.writeToFileDot(firstRead, temporary);
 
-        File dotFile = new File(Test_Helper.getResourcePath("dot-graph-1.dot"));
-        final Graph secondRead = Test_Helper.readFromFileDot(dotFile);
+        File dotFile = new File(TestingHelper.getResourcePath("dot-graph-1.dot"));
+        final Graph secondRead = TestingHelper.readFromFileDot(dotFile);
 
-        final Graph thirdRead = Test_Helper.readFromFileDot(temporary);
+        final Graph thirdRead = TestingHelper.readFromFileDot(temporary);
 
         assertTrue( equal(firstRead, secondRead));
         assertTrue( equal(secondRead, thirdRead));
@@ -299,18 +300,18 @@ public class Test_Graph {
 
     @Test
     public void networkDiameter() throws Exception {
-        File dotFile = new File(Test_Helper.getResourcePath("20node.dot"));
-        final Graph twentyNodes = Test_Helper.readFromFileDot(dotFile);
+        File dotFile = new File(TestingHelper.getResourcePath("20node.dot"));
+        final Graph twentyNodes = TestingHelper.readFromFileDot(dotFile);
         twentyNodes.updateGraphStats();
         assertTrue( twentyNodes.getNetworkDiameter() == 5);
 
-        dotFile = new File(Test_Helper.getResourcePath("30node.dot"));
-        final Graph thirtyNodes = Test_Helper.readFromFileDot(dotFile);
+        dotFile = new File(TestingHelper.getResourcePath("30node.dot"));
+        final Graph thirtyNodes = TestingHelper.readFromFileDot(dotFile);
         thirtyNodes.updateGraphStats();
         assertTrue( thirtyNodes.getNetworkDiameter() == 6);
 
-        dotFile = new File(Test_Helper.getResourcePath("40node.dot"));
-        final Graph fourtyNodes = Test_Helper.readFromFileDot(dotFile);
+        dotFile = new File(TestingHelper.getResourcePath("40node.dot"));
+        final Graph fourtyNodes = TestingHelper.readFromFileDot(dotFile);
         fourtyNodes.updateGraphStats();
         assertTrue( fourtyNodes.getNetworkDiameter() == 9);
     }

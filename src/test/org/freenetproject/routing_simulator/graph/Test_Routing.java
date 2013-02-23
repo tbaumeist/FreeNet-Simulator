@@ -13,9 +13,10 @@ import org.freenetproject.routing_simulator.graph.Graph;
 import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 import org.junit.Test;
 
+import test.org.freenetproject.routing_simulator.TestingBase;
 import test.org.freenetproject.routing_simulator.TestingHelper;
 
-public class Test_Routing {
+public class Test_Routing extends TestingBase {
 
     // @Test
     // public void tmpCreate() throws Exception {

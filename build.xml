@@ -5,6 +5,7 @@
 	<property name="main.dist" value="dist" />
 	<property name="main.build" value="bin" />
 	<property name="main.jar" value="freenet-simulator.jar" />
+	<property name="main.noDepJar" value="freenet-simulator-nodep.jar" />
 	<property name="main.global" value="../../bin" />
 	<property name="main.lib" value="lib" />
 	<path id="external.jars">
@@ -12,6 +13,21 @@
 	</path>
 
 	<target name="CreateJars" description="Create Jar files" depends="clean, local-jars, global-jars" />
+	<target name="test" description="Run test cases" depends="CreateJars, j-unit" />
+
+	<!-- JUnit tests -->
+	<target name="j-unit">
+		<junit haltonfailure="yes">
+			<classpath>
+				<path refid="external.jars" />
+				<pathelement location="${main.build}" />
+			</classpath>
+			<formatter type="plain" usefile="false" />
+			<batchtest>
+				<fileset dir="${main.build}" includes="test/**/Test_*" />
+			</batchtest>
+		</junit>
+	</target>
 
 	<target name="clean">
 		<delete dir="${main.build}" />
@@ -27,15 +43,16 @@
 		<copy todir="${main.build}">
 			<fileset dir="${main.src}" excludes="**/*.java" />
 		</copy>
-		<jar basedir="${main.build}" jarfile="${main.build}/${main.jar}" includes="org/">
+		<jar basedir="${main.build}" jarfile="${main.build}/jar/${main.jar}" includes="org/">
 			<manifest>
 				<attribute name="Main-Class" value="org.freenetproject.routing_simulator.RoutingSim" />
 			</manifest>
 		</jar>
 		<zip destfile="${main.dist}/${main.jar}">
 			<zipgroupfileset dir="${main.lib}" includes="**/*.jar" excludes="junit.jar" />
-			<zipgroupfileset dir="${main.build}" includes="**/*.jar" />
+			<zipgroupfileset dir="${main.build}/jar" includes="${main.jar}" />
 		</zip>
+		<copy tofile="${main.dist}/${main.noDepJar}" file="${main.build}/jar/${main.jar}" />
 	</target>
 
 	<!-- Check if this project is used as a sub project -->
@@ -46,7 +63,7 @@
 
 	<target name="global-jars" depends="-check-global-avail" if="${file.exists}">
 		<copy todir="${main.global}">
-			<fileset dir="${main.dist}" includes="**/*.jar" />
+			<fileset dir="${main.dist}" includes="**/*.jar" excludes="**/*-nodep.jar" />
 		</copy>
 	</target>
 </project>

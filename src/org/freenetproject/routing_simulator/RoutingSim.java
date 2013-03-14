@@ -134,7 +134,7 @@ public final class RoutingSim {
         }
 
         if (arguments.graphOutputText != null) {
-            g.writeDot(arguments.graphOutputText);
+            g.writeDot_Wait(arguments.graphOutputText);
         }
 
         LOGGER.info("Route/Probe time taken (ms): "

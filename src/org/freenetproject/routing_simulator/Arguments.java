@@ -21,6 +21,7 @@ import org.freenetproject.routing_simulator.util.logging.SimLogger;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.logging.Logger;
@@ -28,6 +29,7 @@ import java.util.logging.Logger;
 import static org.freenetproject.routing_simulator.util.File.readableFile;
 import static org.freenetproject.routing_simulator.util.File.writableDirectory;
 import static org.freenetproject.routing_simulator.util.File.writableFile;
+import static org.freenetproject.routing_simulator.util.File.writableFile2;
 
 /**
  * Parses arguments, determines any errors, and provides access to the values.
@@ -144,7 +146,7 @@ public final class Arguments {
     /**
      * DOT format graph output stream.
      */
-    public final DataOutputStream graphOutputText;
+    public final FileOutputStream graphOutputText;
     /**
      * Routing simulation output stream.
      */
@@ -368,7 +370,7 @@ public final class Arguments {
             final DataOutputStream degreeOutput,
             final DataOutputStream linkOutput,
             final DataOutputStream graphOutput,
-            final DataOutputStream graphOutputText, final String outputProbe,
+            final FileOutputStream graphOutputText, final String outputProbe,
             final DataOutputStream outputRoute,
             final FoldingPolicy foldingPolicy,
             final RoutingPolicy routingPolicy, final int nLookAhead,
@@ -798,12 +800,13 @@ public final class Arguments {
 
         // Check that output files exist and are writable or can be created.
         final DataOutputStream degreeOutput, linkOutput, graphOutput;
-        final DataOutputStream graphOutputText, routingSimOutput;
+        final DataOutputStream routingSimOutput;
+        final FileOutputStream graphOutputText;
         try {
             degreeOutput = writableFile(OPT_DEGREE_OUTPUT.getLongOpt(), cmd);
             linkOutput = writableFile(OPT_LINK_OUTPUT.getLongOpt(), cmd);
             graphOutput = writableFile(OPT_GRAPH_SAVE.getLongOpt(), cmd);
-            graphOutputText = writableFile(OPT_GRAPH_SAVE_DOT.getLongOpt(), cmd);
+            graphOutputText = writableFile2(OPT_GRAPH_SAVE_DOT.getLongOpt(), cmd);
             routingSimOutput = writableFile(OPT_ROUTE_OUTPUT.getLongOpt(), cmd);
         } catch (FileNotFoundException e) {
             return null;

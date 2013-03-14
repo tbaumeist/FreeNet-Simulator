@@ -104,4 +104,19 @@ public final class File {
             throw e;
         }
     }
+    
+    public static FileOutputStream writableFile2(final String option,
+            final CommandLine cmd) throws FileNotFoundException {
+        if (!cmd.hasOption(option)) {
+            return null;
+        }
+        final java.io.File file = new java.io.File(cmd.getOptionValue(option));
+        try {
+            return new FileOutputStream(file);
+        } catch (FileNotFoundException e) {
+            LOGGER.severe("Unable to open \"" + file.getAbsolutePath()
+                    + "\" for output:");
+            throw e;
+        }
+    }
 }

@@ -26,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -297,7 +298,6 @@ public class Graph {
      */
     public void write(DataOutputStream output) throws Exception {
         try {
-
             // Number of nodes.
             output.writeInt(nodes.size());
 
@@ -328,6 +328,7 @@ public class Graph {
 
             output.flush();
             output.close();
+            
         } catch (IOException e) {
             throw new Exception("Could not write graph to output stream:");
         }
@@ -343,7 +344,6 @@ public class Graph {
      */
     public void writeDot(OutputStream output) throws Exception {
         try {
-
             /*
              * Write every connection; undirected edges are two directed edges.
              */
@@ -370,6 +370,17 @@ public class Graph {
 
             output.flush();
             output.close();
+        } catch (Exception e) {
+            throw new Exception("Could not write DOT graph to output stream:");
+        }
+    }
+    
+    public void writeDot_Wait(FileOutputStream file) throws Exception {
+        try {
+            writeDot(new DataOutputStream(file));
+            file.flush();
+            file.getFD().sync();
+            file.close();
         } catch (Exception e) {
             throw new Exception("Could not write DOT graph to output stream:");
         }

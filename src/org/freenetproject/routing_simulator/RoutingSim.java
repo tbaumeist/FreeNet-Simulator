@@ -91,6 +91,18 @@ public final class RoutingSim {
         LOGGER.info("Graph generation took (ms): "
                 + (System.currentTimeMillis() - lastTime));
         lastTime = System.currentTimeMillis();
+        
+        if(arguments.scriptOutput && !arguments.runRoute) {
+            StringBuilder b = new StringBuilder();
+            b.append(g.toStringHeaders());
+            b.append('\n');
+
+            b.append(g.toStringValues());
+            b.append('\n');
+
+            // Only use System.out for script outputs
+            System.out.print(b.toString());
+        }
 
         if (arguments.runProbe) {
             // Re-initialize random number source so behavior here does not

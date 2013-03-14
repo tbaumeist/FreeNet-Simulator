@@ -548,16 +548,18 @@ public class Graph {
         b.append("globalClusteringCoefficient ");
         return b.toString();
     }
+    
+    public double getMeanDegree() {
+        return ((double) (2 * this.nEdges())) / nodes.size();
+    }
 
     public String toStringValues() throws Exception {
-        double meanDegree = ((double) (2 * this.nEdges())) / nodes.size();
-
         StringBuilder b = new StringBuilder();
         b.append(this.size()).append(' ');
         b.append(this.nEdges()).append(' ');
         b.append(this.minDegree()).append(' ');
         b.append(this.maxDegree()).append(' ');
-        b.append(meanDegree).append(' ');
+        b.append(this.getMeanDegree()).append(' ');
         b.append(Math.sqrt(degreeVariance())).append(' ');
         b.append(this.getNetworkDiameter()).append(' ');
         b.append(this.getAveragePathLength()).append(' ');

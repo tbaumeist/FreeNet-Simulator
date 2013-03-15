@@ -364,7 +364,7 @@ public final class RoutingSim {
         final boolean bootstrap = arguments.bootstrap;
         final OutputStream outputRoute = arguments.routingSimOutput;
         final boolean scriptOutput = arguments.scriptOutput;
-        final double precisionLoss = arguments.lookAheadPrecisionLoss;
+        final int significantBits = arguments.significantBitsLookAhead;
         final double randomRoutingChance = arguments.routingRandomChance;
 
         // Print out current run progress for users benefit
@@ -390,7 +390,7 @@ public final class RoutingSim {
                     .size()));
             final RouteResult result = origin.route(destination, maxHTL, maxHTL,
                     routingPolicy, foldingPolicy, nLookAhead, nLookBack, newFoldingMethod,
-                    precisionLoss, randomRoutingChance);
+                    significantBits, randomRoutingChance);
 
             experiment.record(result.isSuccess(), result.getPathLength(),
                     result.getTravelLength());

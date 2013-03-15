@@ -170,7 +170,7 @@ public final class Arguments {
     /**
      * Rate of precision loss to use.
      */
-    public final double lookAheadPrecisionLoss;
+    public final int significantBitsLookAhead;
     /**
      * Probability to randomly route a request.
      */
@@ -325,10 +325,10 @@ public final class Arguments {
             "route-old-path-fold", false,
             "Use the old path folding mechanism. (7% chance to randomly path fold).");
     private static final Option OPT_ROUTE_LOOK_PREC = new Option(
-            "rlp",
-            "route-look-precision",
+            "rlsb",
+            "route-look-significant-bit",
             true,
-            "The precision loss rate for look ahead information. Specified as a floating point.");
+            "The number of significant bits to use for look ahead over 1 hop away.");
     private static final Option OPT_ROUTE_RANDOM_CHANCE = new Option(
             "rrc",
             "route-random-chance",
@@ -363,7 +363,7 @@ public final class Arguments {
             final boolean bootstrap, final int seed, final int networkSize,
             final int shortcuts, final int maxHopsProbe,
             final int maxHopsRequest, final int nRequests, final int lookBack,
-            final double precisionLoss, final double routeRandomChance,
+            final int significantBitsLookAhead, final double routeRandomChance,
             final GraphGenerator graphGenerator,
             final DataInputStream degreeInput, final DataInputStream linkInput,
             final DataInputStream graphInput,
@@ -390,7 +390,7 @@ public final class Arguments {
         this.maxHopsRoute = maxHopsRequest;
         this.nRouteRequests = nRequests;
         this.lookBack = lookBack;
-        this.lookAheadPrecisionLoss = precisionLoss;
+        this.significantBitsLookAhead = significantBitsLookAhead;
         this.routingRandomChance = routeRandomChance;
         this.graphGenerator = graphGenerator;
         this.degreeInput = degreeInput;
@@ -840,8 +840,8 @@ public final class Arguments {
         final int nLookBack = cmd.hasOption(OPT_ROUTE_LOOK_BACK.getLongOpt()) ? Integer
                 .valueOf(cmd.getOptionValue(OPT_ROUTE_LOOK_BACK.getLongOpt()))
                 : -1;
-        final double precisionLoss = cmd.hasOption(OPT_ROUTE_LOOK_PREC
-                .getLongOpt()) ? Double.valueOf(cmd
+        final int significantBits = cmd.hasOption(OPT_ROUTE_LOOK_PREC
+                .getLongOpt()) ? Integer.valueOf(cmd
                 .getOptionValue(OPT_ROUTE_LOOK_PREC.getLongOpt())) : 0;
         final double randomRouteChance = cmd.hasOption(OPT_ROUTE_RANDOM_CHANCE
                 .getLongOpt()) ? Double.valueOf(cmd
@@ -856,7 +856,7 @@ public final class Arguments {
                 cmd.hasOption(OPT_LINK_EXCLUDE_LATTICE.getLongOpt()),
                 cmd.hasOption(OPT_ROUTE_BOOTSTRAP.getLongOpt()), seed,
                 networkSize, shortcuts, maxHopsProbe, maxHopsRequest,
-                nRequests, nLookBack, precisionLoss, randomRouteChance,
+                nRequests, nLookBack, significantBits, randomRouteChance,
                 graphGenerator, degreeInput, linkInput, graphInput,
                 degreeOutput, linkOutput, graphOutput, graphOutputText,
                 cmd.getOptionValue(OPT_PROBE_OUTPUT.getLongOpt()),

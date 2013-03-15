@@ -9,13 +9,13 @@ import org.freenetproject.routing_simulator.graph.node.SimpleNode;
 
 public class PrecisionLoss extends LoopDetection {
 
-    private final double precisionLoss;
+    private final int significantBitsLookAhead;
 
     public PrecisionLoss(final FoldingPolicy policy,
             final RandomGenerator random, final double randomRoutingChance,
-            final int nLookBack, long requestId, double precisionLoss) {
+            final int nLookBack, long requestId, int significantBitsLookAhead) {
         super(policy, random, randomRoutingChance, nLookBack, requestId);
-        this.precisionLoss = precisionLoss;
+        this.significantBitsLookAhead = significantBitsLookAhead;
     }
 
     @Override
@@ -25,8 +25,7 @@ public class PrecisionLoss extends LoopDetection {
             return n.distanceToLoc(target);
         }
 
-        double remainingPrecision = Math.pow(1 - this.precisionLoss,
-                lookAhead - 1);
+
 
         String locationText = new DecimalFormat("#.#######################")
                 .format(n.getLocation());
@@ -37,9 +36,8 @@ public class PrecisionLoss extends LoopDetection {
             return n.distanceToLoc(target);
         }
 
-        double reducedPlaces = remainingPrecision * decimalPlaces;
         String reducedLocation = locationText.substring(0, integerPlaces
-                + (int) Math.ceil(reducedPlaces) + 1);
+                + (int) Math.ceil(significantBitsLookAhead) + 1);
 
         return Location.distance(Double.parseDouble(reducedLocation), target);
     }

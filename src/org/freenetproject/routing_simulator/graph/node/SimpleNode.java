@@ -641,7 +641,7 @@ public class SimpleNode {
 			final int maxHTL, final RoutingPolicy routingPolicy,
 			final FoldingPolicy foldingPolicy, final int nLookAhead,
 			final int nLookBack, final boolean newFoldingMethod,
-			final double precisionLoss, final double randomRoutingChance) {
+			final int significantBitsLookAhead, final double randomRoutingChance) {
 		/*
 		 * NOTE: This is static and package-local: not thread-safe! The
 		 * simulator is as of this writing strictly single-threaded. The request
@@ -674,7 +674,7 @@ public class SimpleNode {
 					nLookAhead, true, newFoldingMethod, new PrecisionLoss(
 							foldingPolicy, this.getRandom(),
 							randomRoutingChance, nLookBack, requestID,
-							precisionLoss), foldingPolicy,
+							significantBitsLookAhead), foldingPolicy,
 					new ArrayList<SimpleNode>());
 		default:
 			throw new IllegalStateException("Routing for policy "

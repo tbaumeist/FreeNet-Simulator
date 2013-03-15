@@ -151,7 +151,7 @@ public class Test_Routing extends TestingBase {
 
         result = node360.route(node502, maxHTL, maxHTL,
                 RoutingPolicy.PRECISION_LOSS, FoldingPolicy.NONE, 3, -1, true,
-                0.5, 0);
+                4, 0);
 
         // [0.34909057502529417 360, 0.3475538408373877 357, 0.5904869687046594
         // 592, 0.4983054732855732 503, 0.4982720129903906 502]
@@ -282,7 +282,7 @@ public class Test_Routing extends TestingBase {
         int maxHTL = 100;
         RouteResult result = nodeA.route(nodeB, maxHTL, maxHTL,
                 RoutingPolicy.PRECISION_LOSS, FoldingPolicy.NONE, 1, -1, true,
-                0.5, 0);
+                4, 0);
 
         // [0.4136244989486966 5, 0.474119841114474 8, 0.5860513580630204 9,
         // 0.6457999139358759 12, 0.6687893921306722 13, 0.7589678048955022 14,
@@ -305,7 +305,7 @@ public class Test_Routing extends TestingBase {
 
         result = nodeA.route(nodeB, maxHTL, maxHTL,
                 RoutingPolicy.PRECISION_LOSS, FoldingPolicy.NONE, 2, -1, true,
-                0.5, 0);
+                4, 0);
 
         // [0.4136244989486966 5, 0.4615541189612562 6, 0.9410194257801392 19,
         // 0.9131614916580988 18]
@@ -320,7 +320,7 @@ public class Test_Routing extends TestingBase {
 
         result = nodeA.route(nodeB, maxHTL, maxHTL,
                 RoutingPolicy.PRECISION_LOSS, FoldingPolicy.NONE, 3, -1, true,
-                0.5, 0);
+                4, 0);
 
         // [0.4136244989486966 5, 0.4615541189612562 6, 0.9410194257801392 19,
         // 0.9131614916580988 18]

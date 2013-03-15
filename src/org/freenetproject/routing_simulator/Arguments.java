@@ -325,10 +325,10 @@ public final class Arguments {
             "route-old-path-fold", false,
             "Use the old path folding mechanism. (7% chance to randomly path fold).");
     private static final Option OPT_ROUTE_LOOK_PREC = new Option(
-            "rlsb",
-            "route-look-significant-bit",
+            "rlsd",
+            "route-look-significant-digit",
             true,
-            "The number of significant bits to use for look ahead over 1 hop away.");
+            "The number of significant digits to use for look ahead over 1 hop away.");
     private static final Option OPT_ROUTE_RANDOM_CHANCE = new Option(
             "rrc",
             "route-random-chance",
